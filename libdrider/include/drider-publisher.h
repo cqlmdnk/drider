@@ -10,7 +10,6 @@ class DriderPublisher {
       private:
 	std::string name;
 	char *path;
-
 	std::string bin_name_;
 
       protected:
@@ -21,7 +20,9 @@ class DriderPublisher {
 	sockaddr_un *_pub_addr;
 
 	DriderPublisher(/* args */);
+	DriderPublisher(std::string topic_name, std::string bin_name);
 	~DriderPublisher();
+
 	int register_topic(std::string topic_name);
 	int unregister_topic(std::string topic_name);
 	int process_request(std::string topic_name, int type);

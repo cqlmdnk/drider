@@ -17,26 +17,29 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 		 * If not construct a new topic and add to vector
 		 *
 		 */
-		printf("Adding to regs\nTopic name : %s\n", msg->get_topic_name());
+		printf("register-handler - Adding to regs\nTopic name : %s\n", msg->get_topic_name());
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
 		if (it != topic_vec.end()) {
-			printf("Topic is found\n");
+			printf("register-handler -  Topic is found\n");
 			// found
 			(*it)->add_new_pub_to_topic(std::string(msg->get_bin_name()));
-			printf("Publlisher count on this topic : %ld\n", (*it)->publishers.size());
+			printf("register-handler -  Publlisher count on this topic : %ld\n", (*it)->publishers.size());
 		} else {
 			// not found
-			printf("Topic is not found\n");
+			printf("register-handler -  Topic is not found\n");
 			topic = new drider::DriderTopic(std::string(msg->get_topic_name()));
 			topic_vec.push_back(topic);
-			std::thread topic_thread(topic_loop_func, (void *)topic);
+
 			topic->add_new_pub_to_topic(std::string(msg->get_bin_name()));
-			topic_thread.detach();
+
+			std::thread topic_thread(topic_loop_func, (void *)topic);
+			topic_thread.join();
+
 			printf("Publlisher count on this topic : %ld\n", topic->publishers.size());
 		}
-		printf("Topic Count : %ld\n", topic_vec.size());
+		printf("register-handler -  Topic Count : %ld\n", topic_vec.size());
 
 		/* code */
 		break;
@@ -51,8 +54,11 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
+		printf("%s\n", topic_name.c_str());
+
 		if (it != topic_vec.end()) {
 			// found
+			printf("pubs count in this topic = %ld\n", (*it)->publishers.size());
 			(*it)->add_new_sub_to_topic(std::string(msg->get_bin_name()));
 		}
 		/* code */

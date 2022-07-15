@@ -41,13 +41,13 @@ class DriderTopic {
 	}
 	void add_new_pub_to_topic(std::string bin_name)
 	{
-		DriderPublisher *publisher = new DriderPublisher();
+		DriderPublisher *publisher = new DriderPublisher(bin_name, this->name());
 		publisher->set_socket(construct_new_addr(bin_name));
 		this->publishers.push_back(publisher);
 	}
 	void add_new_sub_to_topic(std::string bin_name)
 	{
-		DriderSubscriber *subscriber = new DriderSubscriber();
+		DriderSubscriber *subscriber = new DriderSubscriber(bin_name, this->name());
 		subscriber->set_socket(construct_new_addr(bin_name));
 		this->subscribers.push_back(subscriber);
 	}

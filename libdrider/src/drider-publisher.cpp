@@ -2,6 +2,7 @@
 #include <register-message.h>
 #include <topics.h>
 
+#include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -9,9 +10,23 @@
 
 namespace drider {
 
-DriderPublisher::DriderPublisher(/* args */)
+DriderPublisher::DriderPublisher(std::string topic_name, std::string bin_name)
 {
+	printf("drider-publisher - init object , topic:%s - bin:%s\n", topic_name.c_str(), bin_name.c_str());
+	this->bin_name() = bin_name;
+
 	sock_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+	printf("drider-publisher - socket is initialized : %d\n", sock_fd);
+	_pub_addr = (sockaddr_un *)calloc(1, sizeof(sockaddr_un));
+	_pub_addr->sun_family = AF_UNIX;
+	std::string path = std::string(this->bin_name()) + topic_name;
+	snprintf(_pub_addr->sun_path, (strlen(path.c_str()) + 1), "%s", path.c_str());
+	_pub_addr->sun_path[0] = '\0';
+	printf("drider-publisher - object is successfully initiliazed\n");
+}
+
+DriderPublisher::DriderPublisher()
+{
 }
 DriderPublisher::~DriderPublisher()
 {
@@ -77,6 +92,7 @@ int DriderPublisher::process_request(std::string topic_name, int type)
 		perror("sending datagram message");
 	}
 	// printf("bytes sent : %d\n", n_sent);
+	free(serv_addr);
 	close(broker_socket);
 	return 0;
 }
