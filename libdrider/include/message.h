@@ -12,9 +12,7 @@ class Message {
 	Message(/* args */)
 	{
 	}
-	~Message()
-	{
-	}
+	virtual ~Message() = default;
 	virtual void serialize(char *buffer) = 0;
 	virtual void deserialize(char *buffer) = 0;
 };

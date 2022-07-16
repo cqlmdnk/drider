@@ -10,6 +10,8 @@ class DriderSubscriber {
 	std::string name;
 	char *path;
 	std::string bin_name_;
+	int _is_deleted = 0;
+
 	void *callback_loop();
 	int process_request(std::string topic_name, int type);
 
@@ -18,17 +20,25 @@ class DriderSubscriber {
 	sockaddr_un *_sub_addr;
 	DriderSubscriber();
 	DriderSubscriber(std::string topic_name, std::string bin_name);
-	~DriderSubscriber();
+	virtual ~DriderSubscriber();
 
 	int subscribe_topic(std::string topic_name);
 	int unsubscribe_topic(std::string topic_name);
 	void set_socket(sockaddr_un *addr);
 	int start();
+
 	virtual void *recv_callback(char *data)
 	{
 		return nullptr;
 	}
-
+	int deleted()
+	{
+		return _is_deleted;
+	}
+	void delete_it()
+	{
+		_is_deleted = 1;
+	}
 	std::string &bin_name()
 	{
 		return bin_name_;

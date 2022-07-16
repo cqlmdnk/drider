@@ -13,7 +13,7 @@ class RegisterHandler {
 	~RegisterHandler()
 	{
 	}
-	int execute_request(drider::RegisterMessage *msg, std::vector<drider::DriderTopic *> &topic_vec, void *(*topic_loop_func)(void *));
+	int execute_request(drider::RegisterMessage *msg, std::vector<drider::DriderTopic *> &topic_vec, void *(*topic_loop_func)(drider::DriderPublisher *, std::vector<drider::DriderSubscriber *> *));
 };
 
 } // namespace dbroker

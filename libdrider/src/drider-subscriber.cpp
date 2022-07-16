@@ -20,6 +20,11 @@ DriderSubscriber::DriderSubscriber(std::string topic_name, std::string bin_name)
 	this->bin_name() = bin_name;
 	this->sock_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 
+	struct timeval tv;
+	tv.tv_sec = 2;
+	tv.tv_usec = 0;
+	setsockopt(this->sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
+
 	printf("drider-subscriber - socket is initialized : %d\n", sock_fd);
 
 	_sub_addr = (sockaddr_un *)calloc(1, sizeof(sockaddr_un));
@@ -35,6 +40,7 @@ DriderSubscriber::DriderSubscriber(std::string topic_name, std::string bin_name)
 DriderSubscriber::~DriderSubscriber()
 {
 	free(path);
+	unlink(_sub_addr->sun_path);
 	free(_sub_addr);
 	close(sock_fd);
 }
@@ -98,7 +104,18 @@ void *DriderSubscriber::callback_loop()
 {
 	ssize_t n_read;
 	char buffer[BUF_SIZE_1K];
-	while ((n_read = recv(this->sock_fd, buffer, BUF_SIZE_1K, 0)) > 0) {
+
+	while (1) {
+
+		n_read = recv(this->sock_fd, buffer, BUF_SIZE_1K, 0);
+		if (n_read == -1) {
+			if (((errno == EAGAIN) || (errno == EWOULDBLOCK)) && this->deleted()) {
+				delete this;
+				return nullptr;
+			} else {
+				continue;
+			}
+		}
 		this->recv_callback(buffer);
 		printf("drider-subscriber - read %ld bytes from socket\n", n_read);
 	}

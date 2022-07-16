@@ -20,6 +20,12 @@ void *publisher_loop_func(drider::DriderPublisher *publisher, std::vector<drider
 {
 
 	char buffer[BUF_SIZE_1K];
+
+	struct timeval tv;
+	tv.tv_sec = 2;
+	tv.tv_usec = 0;
+	setsockopt(publisher->sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
+
 	if (bind(publisher->sock_fd, (struct sockaddr *)publisher->_pub_addr, sizeof(struct sockaddr_un))) {
 		perror("binding name to datagram socket");
 		exit(1);
@@ -27,7 +33,18 @@ void *publisher_loop_func(drider::DriderPublisher *publisher, std::vector<drider
 	/* Read from the socket */
 	ssize_t n_read = 0;
 
-	while ((n_read = recv(publisher->sock_fd, buffer, BUF_SIZE_1K, 0)) > 0) {
+	while (1) {
+		n_read = recv(publisher->sock_fd, buffer, BUF_SIZE_1K, 0);
+		if (n_read == -1) {
+			if (((errno == EAGAIN) || (errno == EWOULDBLOCK)) && publisher->deleted()) {
+				delete publisher;
+				return nullptr;
+			} else {
+				continue;
+			}
+		}
+
+		pthread_mutex_lock(&lock);
 		std::vector<drider::DriderSubscriber *>::iterator it = subscribers->begin();
 
 		for (; it != subscribers->end(); it++) {
@@ -37,22 +54,19 @@ void *publisher_loop_func(drider::DriderPublisher *publisher, std::vector<drider
 				perror("cant sent to subscriber ");
 			}
 		}
+		pthread_mutex_unlock(&lock);
 	}
 
 	return nullptr;
 }
 
-void *topic_start_func(void *param)
+void *topic_start_func(drider::DriderPublisher *pub_param, std::vector<drider::DriderSubscriber *> *subs_param)
 {
-	printf("drider broker - topic loop func started\n");
-	drider::DriderTopic *topic = (drider::DriderTopic *)param;
-	std::vector<drider::DriderPublisher *>::iterator it = topic->publishers.begin();
-	printf("drider broker - iterator is initiliazed\n");
-	for (; it != topic->publishers.end(); it++) {
+	printf("drider broker - topic loop func started \n subs_param size = %ld\n", subs_param->size());
 
-		std::thread pub_thread(publisher_loop_func, (*it), &topic->subscribers);
-		pub_thread.detach();
-	}
+	std::thread pub_thread(publisher_loop_func, pub_param, subs_param);
+	pub_thread.detach();
+
 	return nullptr;
 }
 
@@ -104,6 +118,7 @@ void *listener(void *param)
 		register_handler.execute_request(reg_msg, topic_vec, topic_start_func);
 		pthread_mutex_unlock(&lock);
 		printf("%s\n", reg_msg->get_bin_name());
+		delete reg_msg;
 	}
 
 	close(sock);

@@ -39,15 +39,16 @@ class DriderTopic {
 		addr->sun_path[0] = '\0';
 		return addr;
 	}
-	void add_new_pub_to_topic(std::string bin_name)
+	DriderPublisher *add_new_pub_to_topic(std::string bin_name)
 	{
-		DriderPublisher *publisher = new DriderPublisher(bin_name, this->name());
+		DriderPublisher *publisher = new DriderPublisher(this->name(), bin_name);
 		publisher->set_socket(construct_new_addr(bin_name));
 		this->publishers.push_back(publisher);
+		return publisher;
 	}
 	void add_new_sub_to_topic(std::string bin_name)
 	{
-		DriderSubscriber *subscriber = new DriderSubscriber(bin_name, this->name());
+		DriderSubscriber *subscriber = new DriderSubscriber(this->name(), bin_name);
 		subscriber->set_socket(construct_new_addr(bin_name));
 		this->subscribers.push_back(subscriber);
 	}

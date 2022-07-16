@@ -35,6 +35,7 @@ DriderPublisher::~DriderPublisher()
 	//  	this->unregister_topic((*ptr).name());
 	//  }
 	free(path);
+	unlink(_pub_addr->sun_path);
 	free(_pub_addr);
 	close(sock_fd);
 }

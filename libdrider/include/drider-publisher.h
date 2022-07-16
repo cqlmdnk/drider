@@ -11,6 +11,7 @@ class DriderPublisher {
 	std::string name;
 	char *path;
 	std::string bin_name_;
+	int _is_deleted = 0;
 
       protected:
 	void dispatcher(char *msg_buffer, size_t msg_buffer_size);
@@ -21,12 +22,22 @@ class DriderPublisher {
 
 	DriderPublisher(/* args */);
 	DriderPublisher(std::string topic_name, std::string bin_name);
-	~DriderPublisher();
+	virtual ~DriderPublisher();
 
 	int register_topic(std::string topic_name);
 	int unregister_topic(std::string topic_name);
 	int process_request(std::string topic_name, int type);
 	void set_socket(sockaddr_un *addr);
+
+	int deleted()
+	{
+		return _is_deleted;
+	}
+
+	void delete_it()
+	{
+		_is_deleted = 1;
+	}
 
 	std::string &bin_name()
 	{
