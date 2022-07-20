@@ -4,7 +4,12 @@
 #include <message.h>
 #include <string.h>
 #include <types.h>
-
+/*
+ *
+ *	Example basis message for development
+ *	Message objects are header only except internal messages
+ *
+ */
 namespace drider {
 class ExampleMessage : public Message {
       private:
@@ -19,6 +24,7 @@ class ExampleMessage : public Message {
       public:
 	ExampleMessage(/* args */)
 	{
+		z = y = x = pitch = roll = yaw = 0.0;
 	}
 	ExampleMessage(char *bin_name, char *topic_name)
 	{

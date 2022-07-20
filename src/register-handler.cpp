@@ -1,4 +1,5 @@
 #include <register-handler.h>
+#include <spdlog/spdlog.h>
 #include <types.h>
 
 #include <thread>
@@ -19,22 +20,22 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 		 *
 		 */
 		// printf("register-handler - Adding to regs\nTopic name : %s\n", msg->get_topic_name());
-		printf("register-handler -  REG request for = %s\n", msg->get_bin_name());
+		SPDLOG_INFO("register-handler -  REG request for = {}", msg->get_bin_name());
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
 
 		if (it != topic_vec.end()) {
-			printf("register-handler - Adding to regs\nTopic name : %s\n", (*it)->name().c_str());
-			printf("register-handler -  Topic is found\n size of subs = %ld\n", (*it)->subscribers.size());
+			SPDLOG_INFO("register-handler - Adding to regs\nTopic name : {}", (*it)->name().c_str());
+			SPDLOG_INFO("register-handler -  Topic is found\n size of subs = {}", (*it)->subscribers.size());
 			// found
 			drider::DriderPublisher *pub = (*it)->add_new_pub_to_topic(std::string(msg->get_bin_name()));
 			std::thread topic_thread(topic_start_func, pub, &((*it)->subscribers));
 			topic_thread.join();
-			printf("register-handler -  Publlisher count on this topic : %ld\n", (*it)->publishers.size());
+			SPDLOG_INFO("register-handler -  Publlisher count on this topic : {}", (*it)->publishers.size());
 		} else {
 			// not found
-			printf("register-handler -  Topic is not found\n");
+			SPDLOG_INFO("register-handler -  Topic is not found");
 			topic = new drider::DriderTopic(std::string(msg->get_topic_name()));
 			topic_vec.push_back(topic);
 
@@ -43,9 +44,9 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 			std::thread topic_thread(topic_start_func, pub, &(topic->subscribers));
 			topic_thread.join();
 
-			printf("Publlisher count on this topic : %ld\n", topic->publishers.size());
+			SPDLOG_INFO("Publlisher count on this topic : {}", topic->publishers.size());
 		}
-		printf("register-handler -  Topic Count : %ld\n", topic_vec.size());
+		SPDLOG_INFO("register-handler -  Topic Count : {}", topic_vec.size());
 
 		break;
 
@@ -63,7 +64,7 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 
 		if (it != topic_vec.end()) {
 			// found
-			printf("pubs count in this topic = %ld\n", (*it)->publishers.size());
+			SPDLOG_INFO("pubs count in this topic = {}", (*it)->publishers.size());
 			(*it)->add_new_sub_to_topic(std::string(msg->get_bin_name()));
 		}
 		/* code */
@@ -76,13 +77,13 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 		 * If not remove pub from pub list
 		 *
 		 */
-		printf("register-handler -  UNREG request for = %s\n", msg->get_bin_name());
+		SPDLOG_INFO("register-handler -  UNREG request for = {}", msg->get_bin_name());
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
 
 		if (it != topic_vec.end()) {
-			printf("register-handler -  Found topic for publisher removal. Looking for publisher in vector...\n");
+			SPDLOG_INFO("register-handler -  Found topic for publisher removal. Looking for publisher in vector...");
 
 			std::vector<drider::DriderPublisher *>::iterator it_pub;
 
@@ -91,22 +92,22 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 			});
 
 			if (it_pub != (*it)->publishers.end()) {
-				printf("register-handler -  Found publisher, deleting...\n");
+				SPDLOG_INFO("register-handler -  Found publisher, deleting...");
 				(*it)->publishers.erase(std::remove((*it)->publishers.begin(), (*it)->publishers.end(), (*it_pub)), (*it)->publishers.end());
 				(*it_pub)->delete_it();
 			}
-			printf("register-handler -  Publlisher count on this topic : %ld\n", (*it)->publishers.size());
+			SPDLOG_INFO("register-handler -  Publlisher count on this topic : {}", (*it)->publishers.size());
 		}
 
 		break;
 	case drider::PAC_TYPE::UNSUB:
-		printf("register-handler -  UNREG request for = %s\n", msg->get_bin_name());
+		SPDLOG_INFO("register-handler -  UNREG request for = {}", msg->get_bin_name());
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
 
 		if (it != topic_vec.end()) {
-			printf("register-handler -  Found topic for publisher removal. Looking for publisher in vector...\n");
+			SPDLOG_INFO("register-handler -  Found topic for publisher removal. Looking for publisher in vector...");
 
 			std::vector<drider::DriderSubscriber *>::iterator it_sub;
 
@@ -115,11 +116,11 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 			});
 
 			if (it_sub != (*it)->subscribers.end()) {
-				printf("register-handler -  Found publisher, deleting...\n");
+				SPDLOG_INFO("register-handler -  Found publisher, deleting...");
 				(*it)->subscribers.erase(std::remove((*it)->subscribers.begin(), (*it)->subscribers.end(), (*it_sub)), (*it)->subscribers.end());
 				(*it_sub)->delete_it();
 			}
-			printf("register-handler -  Subscribers count on this topic : %ld\n", (*it)->subscribers.size());
+			SPDLOG_INFO("register-handler -  Subscribers count on this topic : {}", (*it)->subscribers.size());
 			/*
 			 * Search through sub in topic
 			 * Remove sub from list

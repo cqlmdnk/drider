@@ -13,62 +13,22 @@ class RegisterMessage : public Message {
 	char topic_name_[BUF_SIZE_16];
 
       public:
-	RegisterMessage()
-	{
-	}
-	RegisterMessage(char *bin_name, int type, char *topic_name)
-	{
-		strcpy(this->bin_name_, bin_name);
-		this->type_ = type;
-		strcpy(this->topic_name_, topic_name);
-	}
-	~RegisterMessage()
-	{
-	}
-	int &type()
-	{
-		return type_;
-	}
-	const int &type() const
-	{
-		return type_;
-	}
+	RegisterMessage();
+	RegisterMessage(char *bin_name, int type, char *topic_name);
+	~RegisterMessage();
+	int &type();
+	const int &type() const;
 
-	char *get_bin_name()
-	{
-		return bin_name_;
-	}
-	void set_bin_name(const char *bin_name) const
-	{
-		strcpy((char *)bin_name_, bin_name);
-	}
+	char *get_bin_name();
+	void set_bin_name(const char *bin_name) const;
 
-	char *get_topic_name()
-	{
-		return topic_name_;
-	}
-	void set_topic_name(const char *topic_name) const
-	{
-		strcpy((char *)topic_name_, topic_name);
-	}
+	char *get_topic_name();
+	void set_topic_name(const char *topic_name) const;
 
-	static int get_size_of_vars()
-	{
-		return sizeof(int) + (2 * BUF_SIZE_16);
-	}
+	static int get_size_of_vars();
 
-	void serialize(char *buffer)
-	{
-		memcpy(buffer, &this->type_, sizeof(int));
-		memcpy(buffer + sizeof(int), &this->bin_name_, BUF_SIZE_16);
-		memcpy(buffer + sizeof(int) + BUF_SIZE_16, &this->topic_name_, BUF_SIZE_16);
-	}
-	void deserialize(char *buffer)
-	{
-		memcpy(&this->type_, buffer, sizeof(int));
-		memcpy(this->bin_name_, buffer + sizeof(int), BUF_SIZE_16);
-		memcpy(&this->topic_name_, buffer + sizeof(int) + BUF_SIZE_16, BUF_SIZE_16);
-	}
+	void serialize(char *buffer);
+	void deserialize(char *buffer);
 };
 } // namespace drider
 #endif

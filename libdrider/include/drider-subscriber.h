@@ -18,35 +18,22 @@ class DriderSubscriber {
       public:
 	int sock_fd;
 	sockaddr_un *_sub_addr;
+
 	DriderSubscriber();
 	DriderSubscriber(std::string topic_name, std::string bin_name);
 	virtual ~DriderSubscriber();
 
+	int deleted();
+	void delete_it();
+	std::string &bin_name();
+	const std::string &bin_name() const;
+	void set_socket(sockaddr_un *addr);
+
 	int subscribe_topic(std::string topic_name);
 	int unsubscribe_topic(std::string topic_name);
-	void set_socket(sockaddr_un *addr);
 	int start();
 
-	virtual void *recv_callback(char *data)
-	{
-		return nullptr;
-	}
-	int deleted()
-	{
-		return _is_deleted;
-	}
-	void delete_it()
-	{
-		_is_deleted = 1;
-	}
-	std::string &bin_name()
-	{
-		return bin_name_;
-	}
-	const std::string &bin_name() const
-	{
-		return bin_name_;
-	}
+	virtual void *recv_callback(char *data);
 };
 
 } // namespace drider

@@ -24,29 +24,15 @@ class DriderPublisher {
 	DriderPublisher(std::string topic_name, std::string bin_name);
 	virtual ~DriderPublisher();
 
+	int deleted();
+	void delete_it();
+	std::string &bin_name();
+	const std::string &bin_name() const;
+	void set_socket(sockaddr_un *addr);
+
 	int register_topic(std::string topic_name);
 	int unregister_topic(std::string topic_name);
 	int process_request(std::string topic_name, int type);
-	void set_socket(sockaddr_un *addr);
-
-	int deleted()
-	{
-		return _is_deleted;
-	}
-
-	void delete_it()
-	{
-		_is_deleted = 1;
-	}
-
-	std::string &bin_name()
-	{
-		return bin_name_;
-	}
-	const std::string &bin_name() const
-	{
-		return bin_name_;
-	}
 };
 
 } // namespace drider
