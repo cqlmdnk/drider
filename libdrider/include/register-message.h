@@ -1,9 +1,9 @@
 #ifndef REGISTER_MESSAGE_H
 #define REGISTER_MESSAGE_H
 #include <drider-topic.h>
+#include <drider-types.h>
 #include <message.h>
 #include <string.h>
-#include <drider-types.h>
 
 namespace drider {
 class RegisterMessage : public Message {

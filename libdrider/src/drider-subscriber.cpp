@@ -3,12 +3,12 @@
 #include <spdlog/spdlog.h>
 #include <topics.h>
 
+#include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
 #include <thread>
 #include <unistd.h>
-#include <errno.h>
 
 namespace drider {
 
@@ -145,7 +145,6 @@ int DriderSubscriber::process_request(std::string topic_name, int type)
 	return 0;
 }
 
-
 void *DriderSubscriber::callback_loop()
 {
 	ssize_t n_read;
@@ -167,6 +166,5 @@ void *DriderSubscriber::callback_loop()
 	}
 	return nullptr;
 }
-
 
 } // namespace drider

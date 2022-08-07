@@ -1,8 +1,8 @@
 #ifndef DRIDER_PUBLISHER_H
 #define DRIDER_PUBLISHER_H
+#include <drider-types.h>
 #include <message.h>
 #include <sys/un.h>
-#include <drider-types.h>
 
 #include <vector>
 namespace drider {

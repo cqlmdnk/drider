@@ -1,6 +1,6 @@
 #include <register-handler.h>
 #include <spdlog/spdlog.h>
-#include <types.h>
+#include <drider-types.h>
 
 #include <thread>
 namespace dbroker {
@@ -43,7 +43,7 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 			drider::DriderPublisher *pub = topic->add_new_pub_to_topic(std::string(msg->get_bin_name()));
 			if (pub == nullptr) {
 				ret = -1;
-				SPDLOG_ERROR("Couldn't add new publisher to topic : {}",msg->get_bin_name());
+				SPDLOG_ERROR("Couldn't add new publisher to topic : {}", msg->get_bin_name());
 				return ret;
 			}
 			std::thread topic_thread(topic_start_func, pub, &(topic->subscribers));
