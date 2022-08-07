@@ -5,8 +5,8 @@ namespace drider {
 class Message {
       private:
 	/* data */
-	int id;
-	int time_stamp;
+	int id = 0;
+	int time_stamp = 0;
 
       public:
 	Message(/* args */)
