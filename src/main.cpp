@@ -1,10 +1,10 @@
 #include <drider-main.h>
 
+#include <drider-types.h>
 #include <main.h>
 #include <register-handler.h>
 #include <spdlog/spdlog.h>
 #include <topics.h>
-#include <drider-types.h>
 
 #include <errno.h>
 #include <fstream>
@@ -13,8 +13,11 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
-#include <unistd.h>
 #include <thread>
+#include <unistd.h>
+
+//#define POLICY_CUT_THE_CORD
+//#define POLICY_RETRY
 
 pthread_mutex_t lock;
 dbroker::RegisterHandler register_handler;
@@ -56,6 +59,18 @@ void *publisher_loop_func(drider::DriderPublisher *publisher, std::vector<drider
 			if ((n_sent = sendto(publisher->sock_fd, buffer, n_read, 0, (struct sockaddr *)(*it)->_sub_addr, sizeof(struct sockaddr_un))) < 0) {
 
 				SPDLOG_ERROR("cant sent to subscriber");
+#if defined(POLICY_CUT_THE_CORD)
+				SPDLOG_ERROR("omit&flush");
+				// TODO
+				// will be defined
+#elif defined(POLICY_RETRY)
+				SPDLOG_ERROR("retrying");
+				// TODO
+				// will be defined
+#else
+				SPDLOG_ERROR("moving on");
+				// will do nothing
+#endif
 			}
 		}
 		pthread_mutex_unlock(&lock);
