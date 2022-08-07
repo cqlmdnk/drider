@@ -13,7 +13,7 @@ RegisterMessage::RegisterMessage(char *bin_name, int type, char *topic_name)
 RegisterMessage::~RegisterMessage()
 {
 }
-int &RegisterMessage::type(int type)
+void RegisterMessage::set_type(int type)
 {
 	this->type_ = type;
 }
