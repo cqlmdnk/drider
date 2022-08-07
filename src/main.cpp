@@ -4,6 +4,7 @@
 #include <register-handler.h>
 #include <spdlog/spdlog.h>
 #include <topics.h>
+#include <drider-types.h>
 
 #include <errno.h>
 #include <fstream>
@@ -76,7 +77,7 @@ void *topic_start_func(drider::DriderPublisher *pub_param, std::vector<drider::D
 
 void *listener(void *param)
 {
-	int sock = 0;
+	int sock = 0, ret = 0;
 	struct sockaddr_un *addr = (struct sockaddr_un *)malloc(sizeof(struct sockaddr_un));
 	struct sockaddr_un *cli_addr = (struct sockaddr_un *)malloc(sizeof(struct sockaddr_un));
 	drider::RegisterMessage *reg_msg;
@@ -119,7 +120,16 @@ void *listener(void *param)
 		// add clie address to topic vector
 		SPDLOG_INFO("drider-broker - register request is received, executing request");
 
-		register_handler.execute_request(reg_msg, topic_vec, topic_start_func);
+		ret = register_handler.execute_request(reg_msg, topic_vec, topic_start_func);
+		if (ret == -1) {
+			SPDLOG_ERROR("drider-broker - error while executing request");
+			reg_msg->set_type(drider::PAC_TYPE::ERR);
+		} else {
+			reg_msg->set_type(drider::PAC_TYPE::ACK);
+		}
+		if (sendto(sock, buffer, reg_msg->get_size_of_vars(), 0, (struct sockaddr *)cli_addr, sock_len) < 0) {
+			SPDLOG_ERROR("drider-broker - error while sending response message to client");
+		}
 		pthread_mutex_unlock(&lock);
 		SPDLOG_INFO("{}\n", reg_msg->get_bin_name());
 		delete reg_msg;

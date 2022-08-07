@@ -3,7 +3,7 @@
 #include <drider-topic.h>
 #include <message.h>
 #include <string.h>
-#include <types.h>
+#include <drider-types.h>
 
 namespace drider {
 class RegisterMessage : public Message {
@@ -16,7 +16,7 @@ class RegisterMessage : public Message {
 	RegisterMessage();
 	RegisterMessage(char *bin_name, int type, char *topic_name);
 	~RegisterMessage();
-	int &type();
+	void set_type(int type);
 	const int &type() const;
 
 	char *get_bin_name();

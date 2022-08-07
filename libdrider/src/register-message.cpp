@@ -13,9 +13,9 @@ RegisterMessage::RegisterMessage(char *bin_name, int type, char *topic_name)
 RegisterMessage::~RegisterMessage()
 {
 }
-int &RegisterMessage::type()
+int &RegisterMessage::type(int type)
 {
-	return type_;
+	this->type_ = type;
 }
 const int &RegisterMessage::type() const
 {

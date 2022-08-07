@@ -22,6 +22,7 @@ sockaddr_un *DriderTopic::construct_new_addr(std::string bin_name)
 	sockaddr_un *addr = (sockaddr_un *)calloc(1, sizeof(sockaddr_un));
 	if (addr == NULL) {
 		SPDLOG_ERROR("socket address allocation failed");
+		return NULL;
 	}
 	addr->sun_family = AF_UNIX;
 	std::string path = std::string(bin_name) + this->name();
@@ -33,7 +34,11 @@ sockaddr_un *DriderTopic::construct_new_addr(std::string bin_name)
 DriderPublisher *DriderTopic::add_new_pub_to_topic(std::string bin_name)
 {
 	DriderPublisher *publisher = new DriderPublisher(this->name(), bin_name);
-	publisher->set_socket(construct_new_addr(bin_name));
+	sockaddr_un *addr = construct_new_addr(bin_name);
+	if (addr == NULL) {
+		return nullptr;
+	}
+	publisher->set_socket(addr);
 	this->publishers.push_back(publisher);
 	return publisher;
 }

@@ -6,6 +6,7 @@
 namespace dbroker {
 int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<drider::DriderTopic *> &topic_vec, void *(*topic_start_func)(drider::DriderPublisher *, std::vector<drider::DriderSubscriber *> *))
 {
+	int ret = 0;
 	drider::DriderTopic *topic;
 	std::vector<drider::DriderTopic *>::iterator it;
 	std::string topic_name = std::string(msg->get_topic_name());
@@ -40,7 +41,11 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 			topic_vec.push_back(topic);
 
 			drider::DriderPublisher *pub = topic->add_new_pub_to_topic(std::string(msg->get_bin_name()));
-
+			if (pub == nullptr) {
+				ret = -1;
+				SPDLOG_ERROR("Couldn't add new publisher to topic : {}",msg->get_bin_name());
+				return ret;
+			}
 			std::thread topic_thread(topic_start_func, pub, &(topic->subscribers));
 			topic_thread.join();
 
