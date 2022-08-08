@@ -1,5 +1,7 @@
 #include <drider-main.h>
 
+#include <drider-publisher-internal.h>
+#include <drider-subscriber-internal.h>
 #include <drider-types.h>
 #include <main.h>
 #include <register-handler.h>
@@ -23,7 +25,7 @@ pthread_mutex_t lock;
 dbroker::RegisterHandler register_handler;
 std::vector<drider::DriderTopic *> topic_vec;
 
-void *publisher_loop_func(drider::DriderPublisher *publisher, std::vector<drider::DriderSubscriber *> *subscribers)
+void *publisher_loop_func(drider::DriderPublisherInt *publisher, std::vector<drider::DriderSubscriberInt *> *subscribers)
 {
 
 	char buffer[BUF_SIZE_1K];
@@ -52,17 +54,19 @@ void *publisher_loop_func(drider::DriderPublisher *publisher, std::vector<drider
 		}
 
 		pthread_mutex_lock(&lock);
-		std::vector<drider::DriderSubscriber *>::iterator it = subscribers->begin();
+		std::vector<drider::DriderSubscriberInt *>::iterator it = subscribers->begin();
 
 		for (; it != subscribers->end(); it++) {
 			ssize_t n_sent;
 			if ((n_sent = sendto(publisher->sock_fd, buffer, n_read, 0, (struct sockaddr *)(*it)->_sub_addr, sizeof(struct sockaddr_un))) < 0) {
 
 				SPDLOG_ERROR("cant sent to subscriber");
+				(*it)->delete_it();
 #if defined(POLICY_CUT_THE_CORD)
 				SPDLOG_ERROR("omit&flush");
 				// TODO
 				// will be defined
+				(*it)->
 #elif defined(POLICY_RETRY)
 				SPDLOG_ERROR("retrying");
 				// TODO
@@ -79,7 +83,7 @@ void *publisher_loop_func(drider::DriderPublisher *publisher, std::vector<drider
 	return nullptr;
 }
 
-void *topic_start_func(drider::DriderPublisher *pub_param, std::vector<drider::DriderSubscriber *> *subs_param)
+void *topic_start_func(drider::DriderPublisherInt *pub_param, std::vector<drider::DriderSubscriberInt *> *subs_param)
 {
 	SPDLOG_INFO("drider broker - topic loop func started");
 	SPDLOG_INFO("subs_param size = {}", subs_param->size());

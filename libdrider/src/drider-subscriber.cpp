@@ -70,14 +70,6 @@ void *DriderSubscriber::recv_callback(char *data)
 {
 	return nullptr;
 }
-int DriderSubscriber::deleted()
-{
-	return _is_deleted;
-}
-void DriderSubscriber::delete_it()
-{
-	_is_deleted = 1;
-}
 std::string &DriderSubscriber::bin_name()
 {
 	return bin_name_;
@@ -154,7 +146,7 @@ void *DriderSubscriber::callback_loop()
 
 		n_read = recv(this->sock_fd, buffer, BUF_SIZE_1K, 0);
 		if (n_read == -1) {
-			if (((errno == EAGAIN) || (errno == EWOULDBLOCK)) && this->deleted()) {
+			if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
 				delete this;
 				return nullptr;
 			} else {

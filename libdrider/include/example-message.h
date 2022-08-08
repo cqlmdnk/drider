@@ -1,6 +1,5 @@
 #ifndef EXAMPLE_MESSAGE_H
 #define EXAMPLE_MESSAGE_H
-#include <drider-topic.h>
 #include <message.h>
 #include <string.h>
 #include <drider-types.h>

@@ -1,7 +1,7 @@
 #ifndef DRIDER_TOPIC_H
 #define DRIDER_TOPIC_H
-#include <drider-publisher.h>
-#include <drider-subscriber.h>
+#include <drider-publisher-internal.h>
+#include <drider-subscriber-internal.h>
 #include <string>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -13,8 +13,8 @@ class DriderTopic {
 	std::string name_;
 
       public:
-	std::vector<DriderPublisher *> publishers;
-	std::vector<DriderSubscriber *> subscribers;
+	std::vector<DriderPublisherInt *> publishers;
+	std::vector<DriderSubscriberInt *> subscribers;
 
 	DriderTopic(std::string name);
 	~DriderTopic();
@@ -23,7 +23,7 @@ class DriderTopic {
 	const std::string &name() const;
 
 	sockaddr_un *construct_new_addr(std::string bin_name);
-	DriderPublisher *add_new_pub_to_topic(std::string bin_name);
+	DriderPublisherInt *add_new_pub_to_topic(std::string bin_name);
 	void add_new_sub_to_topic(std::string bin_name);
 };
 

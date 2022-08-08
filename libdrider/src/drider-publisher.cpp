@@ -117,16 +117,6 @@ int DriderPublisher::unregister_topic(std::string topic_name)
 	return this->process_request(topic_name, 3);
 }
 
-int DriderPublisher::deleted()
-{
-	return _is_deleted;
-}
-
-void DriderPublisher::delete_it()
-{
-	_is_deleted = 1;
-}
-
 std::string &DriderPublisher::bin_name()
 {
 	return bin_name_;

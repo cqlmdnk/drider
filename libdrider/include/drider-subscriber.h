@@ -23,8 +23,6 @@ class DriderSubscriber {
 	DriderSubscriber(std::string topic_name, std::string bin_name);
 	virtual ~DriderSubscriber();
 
-	int deleted();
-	void delete_it();
 	std::string &bin_name();
 	const std::string &bin_name() const;
 	void set_socket(sockaddr_un *addr);

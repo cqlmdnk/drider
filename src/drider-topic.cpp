@@ -31,9 +31,9 @@ sockaddr_un *DriderTopic::construct_new_addr(std::string bin_name)
 	return addr;
 }
 
-DriderPublisher *DriderTopic::add_new_pub_to_topic(std::string bin_name)
+DriderPublisherInt *DriderTopic::add_new_pub_to_topic(std::string bin_name)
 {
-	DriderPublisher *publisher = new DriderPublisher(this->name(), bin_name);
+	DriderPublisherInt *publisher = new DriderPublisherInt(this->name(), bin_name);
 	sockaddr_un *addr = construct_new_addr(bin_name);
 	if (addr == NULL) {
 		return nullptr;
@@ -45,7 +45,7 @@ DriderPublisher *DriderTopic::add_new_pub_to_topic(std::string bin_name)
 
 void DriderTopic::add_new_sub_to_topic(std::string bin_name)
 {
-	DriderSubscriber *subscriber = new DriderSubscriber(this->name(), bin_name);
+	DriderSubscriberInt *subscriber = new DriderSubscriberInt(this->name(), bin_name);
 	subscriber->set_socket(construct_new_addr(bin_name));
 	this->subscribers.push_back(subscriber);
 }

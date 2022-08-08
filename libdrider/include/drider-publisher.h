@@ -24,8 +24,6 @@ class DriderPublisher {
 	DriderPublisher(std::string topic_name, std::string bin_name);
 	virtual ~DriderPublisher();
 
-	int deleted();
-	void delete_it();
 	std::string &bin_name();
 	const std::string &bin_name() const;
 	void set_socket(sockaddr_un *addr);
