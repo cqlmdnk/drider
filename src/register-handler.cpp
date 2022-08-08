@@ -1,8 +1,8 @@
-#include <register-handler.h>
 #include <drider-publisher-internal.h>
 #include <drider-subscriber-internal.h>
-#include <spdlog/spdlog.h>
 #include <drider-types.h>
+#include <register-handler.h>
+#include <spdlog/spdlog.h>
 
 #include <thread>
 namespace dbroker {

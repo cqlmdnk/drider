@@ -1,8 +1,8 @@
 #ifndef EXAMPLE_MESSAGE_H
 #define EXAMPLE_MESSAGE_H
+#include <drider-types.h>
 #include <message.h>
 #include <string.h>
-#include <drider-types.h>
 /*
  *
  *	Example basis message for development

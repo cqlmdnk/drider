@@ -1,7 +1,7 @@
 #ifndef REGISTER_HANDLER_H
 #define REGISTER_HANDLER_H
-#include <register-message.h>
 #include <drider-topic.h>
+#include <register-message.h>
 #include <vector>
 namespace dbroker {
 class RegisterHandler {

@@ -14,7 +14,6 @@ class DriderPublisherInt {
 	int _is_deleted = 0;
 
       protected:
-
       public:
 	int sock_fd;
 	sockaddr_un *_pub_addr;
