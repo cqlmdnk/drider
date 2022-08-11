@@ -1,5 +1,4 @@
 #include <drider-params.h>
-#include <drider-publisher.h>
 
 namespace drider {
 class DriderMain {

@@ -34,7 +34,7 @@ void *publisher_loop_func(drider::DriderPublisherInt *publisher, std::vector<dri
 	tv.tv_sec = 2;
 	tv.tv_usec = 0;
 	setsockopt(publisher->sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
-
+	SPDLOG_INFO("In publisher loop func init.");
 	if (bind(publisher->sock_fd, (struct sockaddr *)publisher->_pub_addr, sizeof(struct sockaddr_un))) {
 		SPDLOG_ERROR("binding name to datagram socket");
 		exit(1);
@@ -97,8 +97,8 @@ void *topic_start_func(drider::DriderPublisherInt *pub_param, std::vector<drider
 void *listener(void *param)
 {
 	int sock = 0, ret = 0;
-	struct sockaddr_un *addr = (struct sockaddr_un *)malloc(sizeof(struct sockaddr_un));
-	struct sockaddr_un *cli_addr = (struct sockaddr_un *)malloc(sizeof(struct sockaddr_un));
+	struct sockaddr_un *addr = (struct sockaddr_un *)calloc(1, sizeof(struct sockaddr_un));
+	struct sockaddr_un *cli_addr = (struct sockaddr_un *)calloc(1, sizeof(struct sockaddr_un));
 	drider::RegisterMessage *reg_msg;
 	char buffer[reg_msg->get_size_of_vars()];
 	const char *path_ = BROKER_PATH;
@@ -146,9 +146,9 @@ void *listener(void *param)
 		} else {
 			reg_msg->set_type(drider::PAC_TYPE::ACK);
 		}
-		if (sendto(sock, buffer, reg_msg->get_size_of_vars(), 0, (struct sockaddr *)cli_addr, sock_len) < 0) {
-			SPDLOG_ERROR("drider-broker - error while sending response message to client");
-		}
+		// if (sendto(sock, buffer, reg_msg->get_size_of_vars(), 0, (struct sockaddr *)cli_addr, sock_len) < 0) {
+		// 	SPDLOG_ERROR("drider-broker - error while sending response message to client");
+		// }
 		pthread_mutex_unlock(&lock);
 		SPDLOG_INFO("{}\n", reg_msg->get_bin_name());
 		delete reg_msg;
