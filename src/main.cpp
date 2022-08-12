@@ -146,9 +146,11 @@ void *listener(void *param)
 		} else {
 			reg_msg->set_type(drider::PAC_TYPE::ACK);
 		}
-		// if (sendto(sock, buffer, reg_msg->get_size_of_vars(), 0, (struct sockaddr *)cli_addr, sock_len) < 0) {
-		// 	SPDLOG_ERROR("drider-broker - error while sending response message to client");
-		// }
+		reg_msg->serialize(buffer);
+		if (sendto(sock, buffer, reg_msg->get_size_of_vars(), 0, (struct sockaddr *)cli_addr, sock_len) < 0) {
+			SPDLOG_ERROR("drider-broker - error while sending response message to client");
+			perror("cant send data\n");
+		}
 		pthread_mutex_unlock(&lock);
 		SPDLOG_INFO("{}\n", reg_msg->get_bin_name());
 		delete reg_msg;

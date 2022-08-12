@@ -2,7 +2,7 @@
 
 namespace drider {
 
-DriderPublisher::DriderPublisher(std::string topic_name, std::string bin_name)
+DriderPublisher::DriderPublisher(const std::string &topic_name, const std::string &bin_name)
     : DriderAgent::DriderAgent(topic_name, bin_name)
 {
 }
@@ -34,12 +34,12 @@ void DriderPublisher::dispatcher(char *msg_buffer, size_t msg_buffer_size)
 	// msg.serialize(buffer);
 }
 
-int DriderPublisher::register_topic(std::string topic_name)
+int DriderPublisher::register_topic(const std::string &topic_name)
 {
 	return this->process_request(topic_name, 1);
 }
 
-int DriderPublisher::unregister_topic(std::string topic_name)
+int DriderPublisher::unregister_topic(const std::string &topic_name)
 {
 	return this->process_request(topic_name, 3);
 }

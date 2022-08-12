@@ -1,5 +1,6 @@
 #ifndef DRIDER_AGENT_H
 #define DRIDER_AGENT_H
+#include <drider-helpers.h>
 #include <register-message.h>
 #include <spdlog/spdlog.h>
 #include <topics.h>
@@ -13,7 +14,6 @@ namespace drider {
 class DriderAgent {
       protected:
 	std::string name;
-	char *path;
 	std::string bin_name_;
 
       public:
@@ -21,14 +21,14 @@ class DriderAgent {
 	sockaddr_un *_sock_addr;
 
 	DriderAgent();
-	DriderAgent(std::string topic_name, std::string bin_name);
+	DriderAgent(const std::string &topic_name, const std::string &bin_name);
 	virtual ~DriderAgent();
 
 	std::string &bin_name();
 	const std::string &bin_name() const;
 	void set_socket(sockaddr_un *addr);
 
-	int process_request(std::string topic_name, int type);
+	int process_request(const std::string &topic_name, const int &type);
 };
 } // namespace drider
 #endif

@@ -8,7 +8,7 @@ DriderSubscriber::DriderSubscriber()
 {
 }
 
-DriderSubscriber::DriderSubscriber(std::string topic_name, std::string bin_name)
+DriderSubscriber::DriderSubscriber(const std::string &topic_name, const std::string &bin_name)
     : DriderAgent::DriderAgent(topic_name, bin_name)
 {
 
@@ -41,15 +41,16 @@ int DriderSubscriber::start()
 }
 void *DriderSubscriber::recv_callback(char *data)
 {
+	ASSERT_NOT_REACHED();
 	return nullptr;
 }
 
-int DriderSubscriber::subscribe_topic(std::string topic_name)
+int DriderSubscriber::subscribe_topic(const std::string &topic_name)
 {
 	return this->process_request(topic_name, 0);
 }
 
-int DriderSubscriber::unsubscribe_topic(std::string topic_name)
+int DriderSubscriber::unsubscribe_topic(const std::string &topic_name)
 {
 	return this->process_request(topic_name, 2);
 }

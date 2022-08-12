@@ -14,11 +14,11 @@ class DriderPublisher : public DriderAgent {
 
       public:
 	DriderPublisher(/* args */);
-	DriderPublisher(std::string topic_name, std::string bin_name);
+	DriderPublisher(const std::string &topic_name, const std::string &bin_name);
 	virtual ~DriderPublisher();
 
-	int register_topic(std::string topic_name);
-	int unregister_topic(std::string topic_name);
+	int register_topic(const std::string &topic_name);
+	int unregister_topic(const std::string &topic_name);
 };
 
 } // namespace drider

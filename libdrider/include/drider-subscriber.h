@@ -12,11 +12,11 @@ class DriderSubscriber : public DriderAgent {
 	void *callback_loop();
 
 	DriderSubscriber();
-	DriderSubscriber(std::string topic_name, std::string bin_name);
+	DriderSubscriber(const std::string &topic_name, const std::string &bin_name);
 	virtual ~DriderSubscriber();
 
-	int subscribe_topic(std::string topic_name);
-	int unsubscribe_topic(std::string topic_name);
+	int subscribe_topic(const std::string &topic_name);
+	int unsubscribe_topic(const std::string &topic_name);
 	int start();
 
 	virtual void *recv_callback(char *data);
