@@ -1,0 +1,5 @@
+  interface  RegisterMessage  { 
+    attribute int type;
+    attribute char* bin_name [16];
+    attribute char* topic_name [16];
+}
