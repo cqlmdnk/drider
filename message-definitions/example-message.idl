@@ -1,0 +1,8 @@
+interface ExampleMessage {
+    attribute double x;
+	attribute double y;
+	attribute double z;
+	attribute double yaw;
+	attribute double roll;
+	attribute double pitch;
+}
