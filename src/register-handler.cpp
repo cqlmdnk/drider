@@ -34,8 +34,8 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 	int ret = 0;
 	drider::DriderTopic *topic;
 	std::vector<drider::DriderTopic *>::iterator it;
-	std::string topic_name = std::string(msg->get_topic_name());
-	std::string msg_bin_name = std::string(msg->get_bin_name());
+	std::string topic_name = std::string(msg->topic_name());
+	std::string msg_bin_name = std::string(msg->bin_name());
 
 	switch (msg->type()) {
 	case drider::PAC_TYPE::REGS:
@@ -46,7 +46,7 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 		 *
 		 */
 		// printf("register-handler - Adding to regs\nTopic name : %s\n", msg->get_topic_name());
-		SPDLOG_INFO("register-handler -  REG request for = {}", msg->get_bin_name());
+		SPDLOG_INFO("register-handler -  REG request for = {}", msg->bin_name());
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
@@ -55,20 +55,20 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 			SPDLOG_INFO("register-handler - Adding to regs\nTopic name : {}", (*it)->name().c_str());
 			SPDLOG_INFO("register-handler -  Topic is found\n size of subs = {}", (*it)->subscribers.size());
 			// found
-			drider::DriderPublisherInt *pub = (*it)->add_new_pub_to_topic(std::string(msg->get_bin_name()));
+			drider::DriderPublisherInt *pub = (*it)->add_new_pub_to_topic(std::string(msg->bin_name()));
 			std::thread topic_thread(topic_start_func, pub, &((*it)->subscribers));
 			topic_thread.join();
 			SPDLOG_INFO("register-handler -  Publlisher count on this topic : {}", (*it)->publishers.size());
 		} else {
 			// not found
 			SPDLOG_INFO("register-handler -  Topic is not found");
-			topic = new drider::DriderTopic(std::string(msg->get_topic_name()));
+			topic = new drider::DriderTopic(std::string(msg->topic_name()));
 			topic_vec.push_back(topic);
 
-			drider::DriderPublisherInt *pub = topic->add_new_pub_to_topic(std::string(msg->get_bin_name()));
+			drider::DriderPublisherInt *pub = topic->add_new_pub_to_topic(std::string(msg->bin_name()));
 			if (pub == nullptr) {
 				ret = -1;
-				SPDLOG_ERROR("Couldn't add new publisher to topic : {}", msg->get_bin_name());
+				SPDLOG_ERROR("Couldn't add new publisher to topic : {}", msg->bin_name());
 				return ret;
 			}
 			std::thread topic_thread(topic_start_func, pub, &(topic->subscribers));
@@ -95,7 +95,7 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 		if (it != topic_vec.end()) {
 			// found
 			SPDLOG_INFO("pubs count in this topic = {}", (*it)->publishers.size());
-			(*it)->add_new_sub_to_topic(std::string(msg->get_bin_name()));
+			(*it)->add_new_sub_to_topic(std::string(msg->bin_name()));
 		}
 		/* code */
 		break;
@@ -107,7 +107,7 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 		 * If not remove pub from pub list
 		 *
 		 */
-		SPDLOG_INFO("register-handler -  UNREG request for = {}", msg->get_bin_name());
+		SPDLOG_INFO("register-handler -  UNREG request for = {}", msg->bin_name());
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
@@ -131,7 +131,7 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 
 		break;
 	case drider::PAC_TYPE::UNSUB:
-		SPDLOG_INFO("register-handler -  UNREG request for = {}", msg->get_bin_name());
+		SPDLOG_INFO("register-handler -  UNREG request for = {}", msg->bin_name());
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});

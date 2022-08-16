@@ -77,7 +77,7 @@ std::string pascal_case_to_kebab_case(std::string class_name)
 int main(int argc, char **argv)
 {
 	std::string look_path = argv[1];
-	std::string put_path = argv[1];
+	std::string put_path = argv[2];
 
 	// *.idl parsing
 	for (const auto &entry : fs::directory_iterator(look_path)) {
@@ -225,7 +225,7 @@ int main(int argc, char **argv)
 		}
 
 		myheader << "\t  public:" << std::endl;
-		myheader << "\t" << class_name << "();" << std::endl;
+		myheader << "\t" << class_name << "(){}" << std::endl;
 
 		std::string constructor_params;
 		it = attributes.begin();
@@ -238,9 +238,9 @@ int main(int argc, char **argv)
 			if (it + 1 != attributes.end())
 				constructor_params += ", ";
 		}
-		myheader << "\t" << class_name << "(" << constructor_params << ");" << std::endl;
+		myheader << "\t" << class_name << "(" << constructor_params << ") {}" << std::endl;
 
-		myheader << "\t~" << class_name << "();" << std::endl;
+		myheader << "\t~" << class_name << "(){}" << std::endl;
 
 		// getters&setters
 		/*
@@ -251,13 +251,13 @@ int main(int argc, char **argv)
 		for (; it < attributes.end(); it++) {
 			// std::cout << it->name << " len " << it->name.length() << std::endl;
 			if (it->length.empty())
-				myheader << "\t" << it->type << " " << it->name << "() const { return _" << it->name << ";}" << std::endl;
+				myheader << "\t" << it->type << " " << it->name << "() { return _" << it->name << ";}" << std::endl;
 			else
-				myheader << "\t" << it->type << " *" << it->name << "() const { return _" << it->name << ";}" << std::endl;
+				myheader << "\t" << it->type << " *" << it->name << "() { return _" << it->name << ";}" << std::endl;
 			if (it->length.empty())
-				myheader << "\tvoid " << it->name << "(" << it->type << " " << it->name << ") { _" << it->name << " = " << it->name << ";}" << std::endl;
+				myheader << "\tvoid " << it->name << "(const " << it->type << " " << it->name << ") { _" << it->name << " = " << it->name << ";}" << std::endl;
 			else
-				myheader << "\tvoid " << it->name << "(" << it->type << " *" << it->name << ") { memcpy(_" << it->name << ", " << it->name << ", "
+				myheader << "\tvoid " << it->name << "(const " << it->type << " *" << it->name << ") { memcpy(_" << it->name << ", " << it->name << ", "
 					 << "sizeof(" << it->type << ") * " << it->length << ");}" << std::endl;
 		}
 
@@ -268,10 +268,10 @@ int main(int argc, char **argv)
 		for (; it < attributes.end(); it++) {
 			std::string offset_inc;
 			if (it->length.empty()) {
-				myheader << "\t\tmemcpy(buffer" + offset + ", &_" << it->name << ", sizeof(" << it->type << "));";
+				myheader << "\t\tmemcpy(buffer" + offset + ", &_" << it->name << ", sizeof(" << it->type << "));" << std::endl;
 				offset_inc = "sizeof(" + it->type + ")";
 			} else {
-				myheader << "\t\tmemcpy(buffer" + offset + ", _" << it->name << ", sizeof(" << it->type << ") * " << it->length << ");";
+				myheader << "\t\tmemcpy(buffer" + offset + ", _" << it->name << ", sizeof(" << it->type << ") * " << it->length << ");" << std::endl;
 				offset_inc = "sizeof(" + it->type + ") * " + it->length;
 			}
 			offset += "+" + offset_inc;
@@ -285,10 +285,10 @@ int main(int argc, char **argv)
 		for (; it < attributes.end(); it++) {
 			std::string offset_inc;
 			if (it->length.empty()) {
-				myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << offset << ", sizeof(" << it->type << "));";
+				myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << offset << ", sizeof(" << it->type << "));" << std::endl;
 				offset_inc = "sizeof(" + it->type + ")";
 			} else {
-				myheader << "\t\tmemcpy(_" << it->name << ", buffer" << offset << ", sizeof(" << it->type << ") * " << it->length << ");";
+				myheader << "\t\tmemcpy(_" << it->name << ", buffer" << offset << ", sizeof(" << it->type << ") * " << it->length << ");" << std::endl;
 				offset_inc = "sizeof(" + it->type + ") * " + it->length;
 			}
 			offset += "+" + offset_inc;
@@ -296,7 +296,12 @@ int main(int argc, char **argv)
 		}
 		myheader << "}" << std::endl;
 
-		myheader << "}\n}" << std::endl;
+		myheader << "\tstatic size_t get_size_of_vars()" << std::endl
+			 << "{" << std::endl;
+		myheader << "\t\t return" << offset << ";" << std::endl;
+		myheader << "}" << std::endl;
+
+		myheader << "};\n}" << std::endl;
 		myheader << "#endif" << std::endl;
 		myheader.close();
 		// execute clang-format after file is created

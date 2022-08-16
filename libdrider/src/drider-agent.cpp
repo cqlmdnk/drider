@@ -67,10 +67,10 @@ int DriderAgent::process_request(const std::string &topic_name, const int &type)
 		ret = -1;
 		return ret;
 	}
-	RegisterMessage reg_msg = RegisterMessage((char *)bin_name_.c_str(), type, (char *)topic_name.c_str());
+	RegisterMessage reg_msg = RegisterMessage(type, (char *)bin_name_.c_str(), (char *)topic_name.c_str());
 	char buffer[reg_msg.get_size_of_vars()];
-	reg_msg.set_bin_name(this->bin_name().c_str());
-	printf("%s\n", reg_msg.get_bin_name());
+	reg_msg.bin_name(this->bin_name().c_str());
+	printf("%s\n", reg_msg.bin_name());
 	reg_msg.serialize(buffer);
 	const char *path_ = BROKER_PATH;
 
@@ -78,7 +78,7 @@ int DriderAgent::process_request(const std::string &topic_name, const int &type)
 	serv_addr.sun_family = AF_UNIX;
 	snprintf(serv_addr.sun_path, (strlen(path_) + 1), "%s", path_);
 	serv_addr.sun_path[0] = '\0';
-	printf("%s\n", reg_msg.get_bin_name());
+	printf("%s\n", reg_msg.bin_name());
 
 	memset(&cli_addr, 0, sizeof(struct sockaddr_un));
 	cli_addr.sun_family = AF_UNIX;

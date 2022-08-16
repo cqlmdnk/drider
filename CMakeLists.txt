@@ -7,11 +7,11 @@ include_directories(./libdrider/include)
 add_executable(message-generator ./libdrider/src/message-generator.cpp)
 
 execute_process (
-    COMMAND bash -c "../../build/bin/message-generator libdrider/message-definitions libdrider/include"
-    OUTPUT_VARIABLE outVar
+    COMMAND bash -c "release/bin/message-generator drider/drider-devel/message-definitions drider/drider-devel/libdrider/include"
+    message(WARNING "Executed message generation")
 )
 
-add_library(drider SHARED ./libdrider/src/drider-main.cpp ./libdrider/src/drider-agent.cpp ./libdrider/src/drider-publisher.cpp ./libdrider/src/drider-subscriber.cpp ./libdrider/src/register-message.cpp)
+add_library(drider SHARED ./libdrider/src/drider-main.cpp ./libdrider/src/drider-agent.cpp ./libdrider/src/drider-publisher.cpp ./libdrider/src/drider-subscriber.cpp)
 target_link_libraries(drider PUBLIC ${LINK_LIBS})
 ## drider-broker
 include_directories(./include)

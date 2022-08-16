@@ -157,7 +157,7 @@ void *listener(void *param)
 
 		reg_msg = new drider::RegisterMessage();
 		reg_msg->deserialize(buffer);
-		printf("%s\n", reg_msg->get_bin_name());
+		printf("%s\n", reg_msg->bin_name());
 		pthread_mutex_lock(&lock);
 		// add clie address to topic vector
 		SPDLOG_INFO("drider-broker - register request is received, executing request");
@@ -165,9 +165,9 @@ void *listener(void *param)
 		ret = register_handler.execute_request(reg_msg, topic_vec, topic_start_func);
 		if (ret == -1) {
 			SPDLOG_ERROR("drider-broker - error while executing request");
-			reg_msg->set_type(drider::PAC_TYPE::ERR);
+			reg_msg->type(drider::PAC_TYPE::ERR);
 		} else {
-			reg_msg->set_type(drider::PAC_TYPE::ACK);
+			reg_msg->type(drider::PAC_TYPE::ACK);
 		}
 		reg_msg->serialize(buffer);
 		if (sendto(sock, buffer, reg_msg->get_size_of_vars(), 0, (struct sockaddr *)cli_addr, sock_len) < 0) {
@@ -175,7 +175,7 @@ void *listener(void *param)
 			perror("cant send data\n");
 		}
 		pthread_mutex_unlock(&lock);
-		SPDLOG_INFO("{}\n", reg_msg->get_bin_name());
+		SPDLOG_INFO("{}\n", reg_msg->bin_name());
 		delete reg_msg;
 	}
 

@@ -6,6 +6,7 @@
 #include <topics.h>
 
 #include <errno.h>
+#include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
