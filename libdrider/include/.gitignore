@@ -1,0 +1,11 @@
+!drider-agent.h
+!drider-helpers.h
+!drider-main.h
+!drider-params.h
+!drider-publisher.h
+!drider-subscriber.h
+!drider-types.h
+!message.h
+!topics.h
+!.gitignore
+*.h

@@ -23,10 +23,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /*
 Supports int, char, char*, bool, float, double. long/short and
-Does not support unsigned, STL objs, containers, wrappers
+Does not support STL objs, containers
 Will be extended
-1-) unsigned variables
-2-) std::vector
+1-) std::vector
 
 */
 #include <filesystem>
@@ -225,20 +224,31 @@ int main(int argc, char **argv)
 		}
 
 		myheader << "\t  public:" << std::endl;
-		myheader << "\t" << class_name << "(){}" << std::endl;
+		
 
 		std::string constructor_params;
+		std::string constructor_block;
+		std::string constructor_block_def;
 		it = attributes.begin();
 		for (; it < attributes.end(); it++) {
 			std::cout << it->name << " len " << it->name.length() << std::endl;
-			if (it->length.empty())
+			if (it->length.empty()){
 				constructor_params += it->type + " " + it->name;
-			else
+				constructor_block += "\t\t_" + it->name + "=" + it->name + ";\n";
+				constructor_block_def += "\t\t_" + it->name + "=0;\n";
+			} else {
 				constructor_params += it->type + "* " + it->name;
+				constructor_block += "\t\tmemcpy(_" + it->name + ", " + it->name + ", " + "sizeof(" + it->type + ") * " + it->length + ");\n";
+			}
 			if (it + 1 != attributes.end())
 				constructor_params += ", ";
 		}
-		myheader << "\t" << class_name << "(" << constructor_params << ") {}" << std::endl;
+
+		myheader << "\t" << class_name << "()\n\t{\n\t\t" + constructor_block_def +  "\t}" << std::endl;
+
+		myheader << "\t" << class_name << "(" << constructor_params << ") {\n";
+		myheader << constructor_block;
+		myheader << "\t}" << std::endl;
 
 		myheader << "\t~" << class_name << "(){}" << std::endl;
 
@@ -262,7 +272,7 @@ int main(int argc, char **argv)
 		}
 
 		myheader << "\tvoid serialize(char *buffer)" << std::endl
-			 << "{" << std::endl;
+			 << "\t{" << std::endl;
 		std::string offset;
 		it = attributes.begin();
 		for (; it < attributes.end(); it++) {
@@ -277,9 +287,9 @@ int main(int argc, char **argv)
 			offset += "+" + offset_inc;
 			offset_inc.clear();
 		}
-		myheader << "}" << std::endl;
+		myheader << "\t}" << std::endl;
 		myheader << "\tvoid deserialize(char *buffer)" << std::endl
-			 << "{" << std::endl;
+			 << "\t{" << std::endl;
 		offset.clear();
 		it = attributes.begin();
 		for (; it < attributes.end(); it++) {
@@ -294,12 +304,12 @@ int main(int argc, char **argv)
 			offset += "+" + offset_inc;
 			offset_inc.clear();
 		}
-		myheader << "}" << std::endl;
+		myheader << "\t}" << std::endl;
 
 		myheader << "\tstatic size_t get_size_of_vars()" << std::endl
-			 << "{" << std::endl;
+			 << "\t{" << std::endl;
 		myheader << "\t\t return" << offset << ";" << std::endl;
-		myheader << "}" << std::endl;
+		myheader << "\t}" << std::endl;
 
 		myheader << "};\n}" << std::endl;
 		myheader << "#endif" << std::endl;
