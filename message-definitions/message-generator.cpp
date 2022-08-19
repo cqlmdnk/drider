@@ -77,6 +77,9 @@ int main(int argc, char **argv)
 {
 	std::string look_path = argv[1];
 	std::string put_path = argv[2];
+	if (argc != 3) {
+		fprintf(stderr, "Usage ./mg <look_path_for message definitions (.idl files)> <output dir for headers (.h files)>");
+	}
 
 	// *.idl parsing
 	for (const auto &entry : fs::directory_iterator(look_path)) {
