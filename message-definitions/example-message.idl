@@ -5,4 +5,5 @@ interface ExampleMessage {
 	attribute double yaw;
 	attribute double roll;
 	attribute double pitch;
+	attribute list float random_points;
 }

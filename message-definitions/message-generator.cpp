@@ -23,7 +23,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /*
 Supports int, char, char*, bool, float, double. long/short and
-Does not support STL objs, containers
+Supports containers (list, vector, queue)
 Will be extended
 1-) std::vector
 
@@ -46,6 +46,8 @@ struct attribute {
 	std::string type;
 	std::string name;
 	std::string length;
+	bool is_container = false;
+	std::string container_type;
 };
 
 // PascalCase to kebab-case
@@ -72,17 +74,41 @@ std::string pascal_case_to_kebab_case(std::string class_name)
 	}
 	return class_name;
 }
+const char *ws = " \t\n\r\f\v";
+
+inline std::string &rtrim(std::string &s, const char *t = ws)
+{
+	s.erase(s.find_last_not_of(t) + 1);
+	return s;
+}
+
+// trim from beginning of string (left)
+inline std::string &ltrim(std::string &s, const char *t = ws)
+{
+	s.erase(0, s.find_first_not_of(t));
+	return s;
+}
+
+inline std::string &trim(std::string &s, const char *t = ws)
+{
+	return ltrim(rtrim(s, t), t);
+}
 
 int main(int argc, char **argv)
 {
 	std::string look_path = argv[1];
 	std::string put_path = argv[2];
+	std::vector<std::string> included_type_header;
 	if (argc != 3) {
 		fprintf(stderr, "Usage ./mg <look_path_for message definitions (.idl files)> <output dir for headers (.h files)>");
 	}
 
 	// *.idl parsing
 	for (const auto &entry : fs::directory_iterator(look_path)) {
+		std::string _path = entry.path();
+		if (_path.substr(trim(_path, "\"").find_last_of(".") + 1) != "idl") {
+			continue;
+		}
 		std::cout << "Parsing : " << entry.path() << std::endl;
 		std::ifstream file(entry.path(), std::ios::binary | std::ios::ate);
 		std::streamsize size = file.tellg();
@@ -157,9 +183,15 @@ int main(int argc, char **argv)
 			consume_whitespace_till_non_whitespace();
 			consume_string("attribute");
 
+container_case:
 			consume_whitespace_till_non_whitespace();
 			_attr.type = consume_till_whitespace();
-
+			if (!(_attr.is_container) && (_attr.type.compare("list") == 0 || _attr.type.compare("vector") == 0 || _attr.type.compare("queue") == 0)) {
+				included_type_header.push_back(_attr.type);
+				_attr.is_container = true;
+				_attr.container_type = _attr.type;
+				goto container_case;
+			}
 			consume_whitespace_till_non_whitespace();
 
 			_attr.name = consume_till_char_or_char(' ', ';');
@@ -211,6 +243,10 @@ int main(int argc, char **argv)
 
 		myheader << "#include <string.h>" << std::endl;
 
+		for (auto header : included_type_header) {
+			myheader << "#include <" << header << ">" << std::endl;
+		}
+
 		myheader << std::endl
 			 << "namespace drider {" << std::endl;
 		myheader << "class " << class_name << " : public Message {" << std::endl;
@@ -220,25 +256,31 @@ int main(int argc, char **argv)
 		std::vector<struct attribute>::iterator it = attributes.begin();
 		for (; it < attributes.end(); it++) {
 			std::cout << it->name << " len " << it->name.length() << std::endl;
-			if (it->length.empty())
+			if (it->is_container)
+				myheader << "\tstd::" << it->container_type << "<" << it->type << "> _" << it->name << ";" << std::endl;
+			else if (it->length.empty())
 				myheader << "\t" << it->type << " _" << it->name << ";" << std::endl;
 			else
 				myheader << "\t" << it->type << " _" << it->name << "[" << it->length << "];" << std::endl;
 		}
 
 		myheader << "\t  public:" << std::endl;
-		
 
 		std::string constructor_params;
 		std::string constructor_block;
 		std::string constructor_block_def;
 		it = attributes.begin();
 		for (; it < attributes.end(); it++) {
+
 			std::cout << it->name << " len " << it->name.length() << std::endl;
-			if (it->length.empty()){
-				constructor_params += it->type + " " + it->name;
+			if (it->length.empty()) {
+				if (it->is_container)
+					constructor_params += "std::" + it->container_type + "<" + it->type + "> " + it->name;
+				else
+					constructor_params += it->type + " " + it->name;
 				constructor_block += "\t\t_" + it->name + "=" + it->name + ";\n";
-				constructor_block_def += "\t\t_" + it->name + "=0;\n";
+				if (!(it->is_container))
+					constructor_block_def += "\t\t_" + it->name + "=0;\n";
 			} else {
 				constructor_params += it->type + "* " + it->name;
 				constructor_block += "\t\tmemcpy(_" + it->name + ", " + it->name + ", " + "sizeof(" + it->type + ") * " + it->length + ");\n";
@@ -247,7 +289,7 @@ int main(int argc, char **argv)
 				constructor_params += ", ";
 		}
 
-		myheader << "\t" << class_name << "()\n\t{\n\t\t" + constructor_block_def +  "\t}" << std::endl;
+		myheader << "\t" << class_name << "()\n\t{\n" + constructor_block_def + "\t}" << std::endl;
 
 		myheader << "\t" << class_name << "(" << constructor_params << ") {\n";
 		myheader << constructor_block;
@@ -263,15 +305,21 @@ int main(int argc, char **argv)
 		it = attributes.begin();
 		for (; it < attributes.end(); it++) {
 			// std::cout << it->name << " len " << it->name.length() << std::endl;
-			if (it->length.empty())
-				myheader << "\t" << it->type << " " << it->name << "() { return _" << it->name << ";}" << std::endl;
-			else
+			if (it->length.empty()) {
+				if (it->is_container)
+					myheader << "\tstd::" << it->container_type << "<" << it->type << "> " << it->name << "() { return _" << it->name << ";}" << std::endl;
+				else
+					myheader << "\t" << it->type << " " << it->name << "() { return _" << it->name << ";}" << std::endl;
+			} else
 				myheader << "\t" << it->type << " *" << it->name << "() { return _" << it->name << ";}" << std::endl;
-			if (it->length.empty())
-				myheader << "\tvoid " << it->name << "(const " << it->type << " " << it->name << ") { _" << it->name << " = " << it->name << ";}" << std::endl;
-			else
+			if (it->length.empty()) {
+				if (it->is_container)
+					myheader << "\tvoid " << it->name << "(std::" << it->container_type << "<" << it->type << "> " << it->name << ") { _" << it->name << " = " << it->name << ";}" << std::endl;
+				else
+					myheader << "\tvoid " << it->name << "(const " << it->type << " " << it->name << ") { _" << it->name << " = " << it->name << ";}" << std::endl;
+			} else
 				myheader << "\tvoid " << it->name << "(const " << it->type << " *" << it->name << ") { memcpy(_" << it->name << ", " << it->name << ", "
-					 << "sizeof(" << it->type << ") * " << it->length << ");}" << std::endl;
+					 << "sizeof(" << it->type << ") * " << it->length << "); }" << std::endl;
 		}
 
 		myheader << "\tvoid serialize(char *buffer)" << std::endl
@@ -287,7 +335,7 @@ int main(int argc, char **argv)
 				myheader << "\t\tmemcpy(buffer" + offset + ", _" << it->name << ", sizeof(" << it->type << ") * " << it->length << ");" << std::endl;
 				offset_inc = "sizeof(" + it->type + ") * " + it->length;
 			}
-			offset += "+" + offset_inc;
+			offset += " + " + offset_inc;
 			offset_inc.clear();
 		}
 		myheader << "\t}" << std::endl;
@@ -298,20 +346,28 @@ int main(int argc, char **argv)
 		for (; it < attributes.end(); it++) {
 			std::string offset_inc;
 			if (it->length.empty()) {
-				myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << offset << ", sizeof(" << it->type << "));" << std::endl;
-				offset_inc = "sizeof(" + it->type + ")";
+				if (it->is_container) {
+					myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << (offset.empty() ? "" : " + ") << offset << ", sizeof(" << it->type << "));" << std::endl;
+					offset_inc = "_" + it->name + ".size() * sizeof(" + it->type + ")";
+				} else {
+					myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << (offset.empty() ? "" : " + ") << offset << ", sizeof(" << it->type << "));" << std::endl;
+					offset_inc = "sizeof(" + it->type + ")";
+				}
+
 			} else {
-				myheader << "\t\tmemcpy(_" << it->name << ", buffer" << offset << ", sizeof(" << it->type << ") * " << it->length << ");" << std::endl;
+				myheader << "\t\tmemcpy(_" << it->name << ", buffer" << (offset.empty() ? "" : " + ") << offset << ", sizeof(" << it->type << ") * " << it->length << ");" << std::endl;
 				offset_inc = "sizeof(" + it->type + ") * " + it->length;
 			}
-			offset += "+" + offset_inc;
+			if (it != attributes.begin())
+				offset += " + ";
+			offset += offset_inc;
 			offset_inc.clear();
 		}
 		myheader << "\t}" << std::endl;
 
-		myheader << "\tstatic size_t get_size_of_vars()" << std::endl
+		myheader << "\tsize_t get_size_of_vars()" << std::endl
 			 << "\t{" << std::endl;
-		myheader << "\t\t return" << offset << ";" << std::endl;
+		myheader << "\t\t return " << offset << ";" << std::endl;
 		myheader << "\t}" << std::endl;
 
 		myheader << "};\n}" << std::endl;
