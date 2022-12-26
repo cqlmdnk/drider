@@ -99,12 +99,14 @@ int main(int argc, char **argv)
 	std::string look_path = argv[1];
 	std::string put_path = argv[2];
 	std::vector<std::string> included_type_header;
+	std::vector<std::string> var_sized_vars; 
 	if (argc != 3) {
 		fprintf(stderr, "Usage ./mg <look_path_for message definitions (.idl files)> <output dir for headers (.h files)>");
 	}
 
 	// *.idl parsing
 	for (const auto &entry : fs::directory_iterator(look_path)) {
+		var_sized_vars.clear();
 		std::string _path = entry.path();
 		if (_path.substr(trim(_path, "\"").find_last_of(".") + 1) != "idl") {
 			continue;
@@ -213,7 +215,10 @@ container_case:
 				ASSERT_FORMAT_ERROR(";");
 			consume_whitespace_till_non_whitespace();
 			fprintf(stderr, "type is %s\n", _attr.type.c_str());
-
+			if (_attr.length.empty() && _attr.is_container) {
+				var_sized_vars.push_back(_attr.name);
+				fprintf(stderr, "pushed name is %s\n", _attr.name.c_str());
+			}
 			attributes.emplace_back(_attr);
 			count++;
 			fprintf(stderr, "count is %d\n", count);
@@ -329,8 +334,13 @@ container_case:
 		for (; it < attributes.end(); it++) {
 			std::string offset_inc;
 			if (it->length.empty()) {
-				myheader << "\t\tmemcpy(buffer" + offset + ", &_" << it->name << ", sizeof(" << it->type << "));" << std::endl;
-				offset_inc = "sizeof(" + it->type + ")";
+				if (it->is_container) {
+					myheader << "\t\tmemcpy(buffer" + offset + ", &_" << it->name << ", _" << it->name << ".size());" << std::endl;
+					offset_inc = "sizeof(" + it->type + ")";
+				} else {
+					myheader << "\t\tmemcpy(buffer" + offset + ", &_" << it->name << ", sizeof(" << it->type << "));" << std::endl;
+					offset_inc = "sizeof(" + it->type + ")";
+				}
 			} else {
 				myheader << "\t\tmemcpy(buffer" + offset + ", _" << it->name << ", sizeof(" << it->type << ") * " << it->length << ");" << std::endl;
 				offset_inc = "sizeof(" + it->type + ") * " + it->length;
@@ -343,12 +353,27 @@ container_case:
 			 << "\t{" << std::endl;
 		offset.clear();
 		it = attributes.begin();
+		if (!var_sized_vars.empty()) {
+			myheader << "\t\tuint8_t num_of_var_sized_vars = (uint8_t) buffer[0];" << std::endl;
+			myheader << "\t\tstd::list<uint32_t> sizes_of_vars;" << std::endl;
+			myheader << "\t\tfor (int i = 0; i < num_of_var_sized_vars; i++) {" << std::endl;
+			myheader << "\t\t\tuint32_t size_of_var = 0;" << std::endl;
+			myheader << "\t\t\tmemcpy(&size_of_var, ++buffer, sizeof(uint32_t));" << std::endl;
+			myheader << "\t\t\tsizes_of_vars.push_back(size_of_var);" << std::endl;
+			myheader << "\t\t\tbuffer += sizeof(uint32_t);" << std::endl;
+			myheader << "\t\t}" << std::endl;
+			myheader << "\t\tstd::list<uint32_t>::iterator it = sizes_of_vars.begin();" << std::endl;
+		}
+		
 		for (; it < attributes.end(); it++) {
 			std::string offset_inc;
+			std::string offset_inc_not_cont;
 			if (it->length.empty()) {
 				if (it->is_container) {
-					myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << (offset.empty() ? "" : " + ") << offset << ", sizeof(" << it->type << "));" << std::endl;
-					offset_inc = "_" + it->name + ".size() * sizeof(" + it->type + ")";
+					/* TODO : fix so called -Wclass-memaccess in *it */
+					myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << (offset.empty() ? "" : " + ") << offset << ", (size_t)(*it) * sizeof(" << it->type << "));" << std::endl;
+					offset_inc_not_cont = "_" + it->name + ".size() * sizeof(" + it->type + ")";
+					offset_inc = "(size_t) *it * sizeof(" + it->type + ")";
 				} else {
 					myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << (offset.empty() ? "" : " + ") << offset << ", sizeof(" << it->type << "));" << std::endl;
 					offset_inc = "sizeof(" + it->type + ")";
@@ -360,7 +385,10 @@ container_case:
 			}
 			if (it != attributes.begin())
 				offset += " + ";
-			offset += offset_inc;
+			if (offset_inc_not_cont.empty())
+				offset += offset_inc;
+			else
+				offset += offset_inc_not_cont;
 			offset_inc.clear();
 		}
 		myheader << "\t}" << std::endl;

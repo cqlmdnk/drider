@@ -6,4 +6,5 @@ interface ExampleMessage {
 	attribute double roll;
 	attribute double pitch;
 	attribute list float random_points;
+	attribute list float z_random_points;
 }
