@@ -33,6 +33,7 @@ Will be extended
 #include <iostream>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #define ASSERT_FORMAT_ERROR(var)                                    \
 	do {                                                        \
@@ -189,7 +190,9 @@ container_case:
 			consume_whitespace_till_non_whitespace();
 			_attr.type = consume_till_whitespace();
 			if (!(_attr.is_container) && (_attr.type.compare("list") == 0 || _attr.type.compare("vector") == 0 || _attr.type.compare("queue") == 0)) {
-				included_type_header.push_back(_attr.type);
+				if (std::find(included_type_header.begin(), included_type_header.end(), _attr.type) == included_type_header.end()){
+					included_type_header.push_back(_attr.type);
+				}
 				_attr.is_container = true;
 				_attr.container_type = _attr.type;
 				goto container_case;
@@ -335,8 +338,13 @@ container_case:
 			std::string offset_inc;
 			if (it->length.empty()) {
 				if (it->is_container) {
-					myheader << "\t\tmemcpy(buffer" + offset + ", &_" << it->name << ", _" << it->name << ".size());" << std::endl;
-					offset_inc = "sizeof(" + it->type + ")";
+					myheader << "\t\tstd::" + it->container_type + "<" + it->type + ">::iterator " + it->name + "_it = _" + it->name + ".begin();" << std::endl;
+					myheader << "\t\tlong " + it->name + "_container_offset = 0;" << std::endl;
+					myheader << "\t\tfor (; " + it->name + "_it != _" + it->name + ".end(); " + it->name + "_it++) {" << std::endl;
+					myheader << "\t\t\tmemcpy(buffer" + offset + " + sizeof(" + it->type + ") * " + it->name + "_container_offset, &(*" + it->name + "_it), sizeof(" + it->type + "));" << std::endl;
+					myheader << "\t\t\t" + it->name + "_container_offset++;" << std::endl;
+					myheader << "\t\t}" << std::endl;
+					offset_inc = "sizeof(" + it->type + ") * " + it->name + "_container_offset";
 				} else {
 					myheader << "\t\tmemcpy(buffer" + offset + ", &_" << it->name << ", sizeof(" << it->type << "));" << std::endl;
 					offset_inc = "sizeof(" + it->type + ")";
@@ -370,10 +378,15 @@ container_case:
 			std::string offset_inc_not_cont;
 			if (it->length.empty()) {
 				if (it->is_container) {
-					/* TODO : fix so called -Wclass-memaccess in *it */
-					myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << (offset.empty() ? "" : " + ") << offset << ", (size_t)(*it) * sizeof(" << it->type << "));" << std::endl;
-					offset_inc_not_cont = "_" + it->name + ".size() * sizeof(" + it->type + ")";
-					offset_inc = "(size_t) *it * sizeof(" + it->type + ")";
+					myheader << "\t\tfor (uint32_t i = 0; i < *it; i++) {" << std::endl;
+					
+					myheader << "\t\t\t" + it->type + " tmp_" + it->name + "_elem;" << std::endl;
+					myheader << "\t\t\tmemcpy(&tmp_" + it->name + "_elem, buffer" << (offset.empty() ? "" : " + ") << offset << ", i * sizeof(" << it->type << "));" << std::endl;
+					myheader << "\t\t\t_" + it->name + ".push_back(tmp_" + it->name + "_elem);" << std::endl;
+						
+					myheader << "\t\t}" << std::endl;
+					myheader << "\t\tit++;" << std::endl;
+					offset_inc = "_" + it->name + ".size() * sizeof(" + it->type + ")";
 				} else {
 					myheader << "\t\tmemcpy(&_" << it->name << ", buffer" << (offset.empty() ? "" : " + ") << offset << ", sizeof(" << it->type << "));" << std::endl;
 					offset_inc = "sizeof(" + it->type + ")";
@@ -385,15 +398,12 @@ container_case:
 			}
 			if (it != attributes.begin())
 				offset += " + ";
-			if (offset_inc_not_cont.empty())
-				offset += offset_inc;
-			else
-				offset += offset_inc_not_cont;
+			offset += offset_inc;
 			offset_inc.clear();
 		}
 		myheader << "\t}" << std::endl;
 
-		myheader << "\tsize_t get_size_of_vars()" << std::endl
+		myheader << "\t" + (var_sized_vars.empty() == true ? std::string("static ") : std::string("")) + "size_t get_size_of_vars()" << std::endl
 			 << "\t{" << std::endl;
 		myheader << "\t\t return " << offset << ";" << std::endl;
 		myheader << "\t}" << std::endl;
