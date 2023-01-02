@@ -1,6 +1,7 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 #include <string>
+#define UNUSED(x) [&x]{}()
 namespace drider {
 class Message {
       private:

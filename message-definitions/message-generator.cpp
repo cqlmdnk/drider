@@ -315,7 +315,7 @@ container_case:
 			// std::cout << it->name << " len " << it->name.length() << std::endl;
 			if (it->length.empty()) {
 				if (it->is_container)
-					myheader << "\tstd::" << it->container_type << "<" << it->type << "> " << it->name << "() { return _" << it->name << ";}" << std::endl;
+					myheader << "\tstd::" << it->container_type << "<" << it->type << "> & " << it->name << "() { return _" << it->name << ";}" << std::endl;
 				else
 					myheader << "\t" << it->type << " " << it->name << "() { return _" << it->name << ";}" << std::endl;
 			} else
@@ -334,6 +334,24 @@ container_case:
 			 << "\t{" << std::endl;
 		std::string offset;
 		it = attributes.begin();
+		std::vector<std::string>::iterator var_sized_var_it = var_sized_vars.begin();
+		myheader << "\t\tuint8_t num_of_var_sized_vars = " + std::to_string(var_sized_vars.size()) + ";" << std::endl;
+		myheader << "\t\tmemcpy(buffer, &num_of_var_sized_vars, sizeof(uint8_t));" << std::endl;
+		int offset_var_sized = 0;
+		for (size_t i = 0; i < var_sized_vars.size(); i++)
+		{
+			myheader << "\t\tuint32_t var_size_" + *var_sized_var_it + " = _" + *var_sized_var_it + ".size();" << std::endl;
+			myheader << "\t\tmemcpy(buffer + sizeof(uint8_t) + " + std::to_string(i) + " * sizeof(uint32_t), &var_size_" + *var_sized_var_it + ", sizeof(uint32_t));" << std::endl;
+			var_sized_var_it++;
+			offset_var_sized++;
+		}
+		if (var_sized_vars.empty()) {
+			myheader << "\t\tUNUSED(num_of_var_sized_vars);" << std::endl;
+		}
+		offset += " + sizeof(uint8_t)";
+		if (offset_var_sized != 0)
+			offset += " + " + std::to_string(offset_var_sized) + " * sizeof(uint32_t)";
+		
 		for (; it < attributes.end(); it++) {
 			std::string offset_inc;
 			if (it->length.empty()) {
@@ -361,16 +379,21 @@ container_case:
 			 << "\t{" << std::endl;
 		offset.clear();
 		it = attributes.begin();
-		if (!var_sized_vars.empty()) {
+		
 			myheader << "\t\tuint8_t num_of_var_sized_vars = (uint8_t) buffer[0];" << std::endl;
+			myheader << "\t\tbuffer += sizeof(uint8_t);" << std::endl;
+		if (!var_sized_vars.empty()) {
+			myheader << "\t\tuint32_t i;" << std::endl;
 			myheader << "\t\tstd::list<uint32_t> sizes_of_vars;" << std::endl;
-			myheader << "\t\tfor (int i = 0; i < num_of_var_sized_vars; i++) {" << std::endl;
+			myheader << "\t\tfor (i = 0; i < num_of_var_sized_vars; i++) {" << std::endl;
 			myheader << "\t\t\tuint32_t size_of_var = 0;" << std::endl;
-			myheader << "\t\t\tmemcpy(&size_of_var, ++buffer, sizeof(uint32_t));" << std::endl;
+			myheader << "\t\t\tmemcpy(&size_of_var, buffer + i * sizeof(uint32_t), sizeof(uint32_t));" << std::endl;
 			myheader << "\t\t\tsizes_of_vars.push_back(size_of_var);" << std::endl;
-			myheader << "\t\t\tbuffer += sizeof(uint32_t);" << std::endl;
+			myheader << "\t\t\tbuffer += i * sizeof(uint32_t);" << std::endl;
 			myheader << "\t\t}" << std::endl;
 			myheader << "\t\tstd::list<uint32_t>::iterator it = sizes_of_vars.begin();" << std::endl;
+		} else {
+			myheader << "\t\tUNUSED(num_of_var_sized_vars);" << std::endl;
 		}
 		
 		for (; it < attributes.end(); it++) {
@@ -378,10 +401,10 @@ container_case:
 			std::string offset_inc_not_cont;
 			if (it->length.empty()) {
 				if (it->is_container) {
-					myheader << "\t\tfor (uint32_t i = 0; i < *it; i++) {" << std::endl;
+					myheader << "\t\tfor (i = 0; i < *it; i++) {" << std::endl;
 					
 					myheader << "\t\t\t" + it->type + " tmp_" + it->name + "_elem;" << std::endl;
-					myheader << "\t\t\tmemcpy(&tmp_" + it->name + "_elem, buffer" << (offset.empty() ? "" : " + ") << offset << ", i * sizeof(" << it->type << "));" << std::endl;
+					myheader << "\t\t\tmemcpy(&tmp_" + it->name + "_elem, buffer" << (offset.empty() ? "" : " + ") << offset << " + i * sizeof(" + it->type + "), sizeof(" << it->type << "));" << std::endl;
 					myheader << "\t\t\t_" + it->name + ".push_back(tmp_" + it->name + "_elem);" << std::endl;
 						
 					myheader << "\t\t}" << std::endl;
@@ -405,7 +428,7 @@ container_case:
 
 		myheader << "\t" + (var_sized_vars.empty() == true ? std::string("static ") : std::string("")) + "size_t get_size_of_vars()" << std::endl
 			 << "\t{" << std::endl;
-		myheader << "\t\t return " << offset << ";" << std::endl;
+		myheader << "\t\t return sizeof(uint8_t) + " << offset << ";" << std::endl;
 		myheader << "\t}" << std::endl;
 
 		myheader << "};\n}" << std::endl;
