@@ -54,21 +54,6 @@ DriderSubscriberInt::DriderSubscriberInt(std::string topic_name, std::string bin
 	setsockopt(this->sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 
 	SPDLOG_INFO("drider-subscriber - socket is initialized : {}", sock_fd);
-
-	_sub_addr = (sockaddr_un *)calloc(1, sizeof(sockaddr_un));
-	if (_sub_addr == NULL) {
-		SPDLOG_ERROR("socket address allocation failed");
-	}
-	_sub_addr->sun_family = AF_UNIX;
-	std::string path = std::string(this->bin_name()) + topic_name;
-	snprintf(_sub_addr->sun_path, (strlen(path.c_str()) + 1), "%s", path.c_str());
-	_sub_addr->sun_path[0] = '\0';
-	SPDLOG_INFO("drider-subscriber - binding address to socket");
-#ifndef BROKER
-	if (bind(sock_fd, (struct sockaddr *)_sub_addr, sizeof(struct sockaddr_un)) < 0) {
-		SPDLOG_ERROR("socket bind failed");
-	}
-#endif
 	SPDLOG_INFO("drider-subscriber - object is successfully initiliazed");
 }
 
