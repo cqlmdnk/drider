@@ -336,6 +336,7 @@ container_case:
 		it = attributes.begin();
 		std::vector<std::string>::iterator var_sized_var_it = var_sized_vars.begin();
 		myheader << "\t\tuint8_t num_of_var_sized_vars = " + std::to_string(var_sized_vars.size()) + ";" << std::endl;
+		myheader << "\t\tthis->num_of_variable_sized_vars(num_of_var_sized_vars);" << std::endl;
 		myheader << "\t\tmemcpy(buffer, &num_of_var_sized_vars, sizeof(uint8_t));" << std::endl;
 		int offset_var_sized = 0;
 		for (size_t i = 0; i < var_sized_vars.size(); i++)
@@ -380,17 +381,18 @@ container_case:
 		offset.clear();
 		it = attributes.begin();
 		
-			myheader << "\t\tuint8_t num_of_var_sized_vars = (uint8_t) buffer[0];" << std::endl;
-			myheader << "\t\tbuffer += sizeof(uint8_t);" << std::endl;
+		myheader << "\t\tuint8_t num_of_var_sized_vars = (uint8_t) buffer[0];" << std::endl;
+		myheader << "\t\tbuffer += sizeof(uint8_t);" << std::endl;
 		if (!var_sized_vars.empty()) {
+			myheader << "\t\tthis->num_of_variable_sized_vars(num_of_var_sized_vars);" << std::endl;
 			myheader << "\t\tuint32_t i;" << std::endl;
 			myheader << "\t\tstd::list<uint32_t> sizes_of_vars;" << std::endl;
 			myheader << "\t\tfor (i = 0; i < num_of_var_sized_vars; i++) {" << std::endl;
 			myheader << "\t\t\tuint32_t size_of_var = 0;" << std::endl;
 			myheader << "\t\t\tmemcpy(&size_of_var, buffer + i * sizeof(uint32_t), sizeof(uint32_t));" << std::endl;
 			myheader << "\t\t\tsizes_of_vars.push_back(size_of_var);" << std::endl;
-			myheader << "\t\t\tbuffer += i * sizeof(uint32_t);" << std::endl;
 			myheader << "\t\t}" << std::endl;
+			myheader << "\t\tbuffer += i * sizeof(uint32_t);" << std::endl;
 			myheader << "\t\tstd::list<uint32_t>::iterator it = sizes_of_vars.begin();" << std::endl;
 		} else {
 			myheader << "\t\tUNUSED(num_of_var_sized_vars);" << std::endl;
@@ -428,7 +430,7 @@ container_case:
 
 		myheader << "\t" + (var_sized_vars.empty() == true ? std::string("static ") : std::string("")) + "size_t get_size_of_vars()" << std::endl
 			 << "\t{" << std::endl;
-		myheader << "\t\t return sizeof(uint8_t) + " << offset << ";" << std::endl;
+		myheader << "\t\t return sizeof(uint8_t) + " + (var_sized_vars.empty() == true ? std::string("") : std::string("this->num_of_variable_sized_vars() * sizeof(uint32_t) + ")) << offset << ";" << std::endl;
 		myheader << "\t}" << std::endl;
 
 		myheader << "};\n}" << std::endl;
