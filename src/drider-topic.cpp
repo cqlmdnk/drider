@@ -72,4 +72,9 @@ void DriderTopic::add_new_sub_to_topic(std::string bin_name)
 	subscriber->set_socket(construct_new_addr(bin_name));
 	this->subscribers.push_back(subscriber);
 }
+
+bool DriderTopic::is_pub_exist(std::string bin_name)
+{
+	return this->publishers.end() != std::find_if(std::begin(this->publishers), std::end(this->publishers), [&] (DriderPublisherInt * const& p) { return p->bin_name().compare(bin_name) == 0; });
+}
 } // namespace drider

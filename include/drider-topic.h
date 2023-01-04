@@ -25,6 +25,7 @@ class DriderTopic {
 	sockaddr_un *construct_new_addr(std::string bin_name);
 	DriderPublisherInt *add_new_pub_to_topic(std::string bin_name);
 	void add_new_sub_to_topic(std::string bin_name);
+	bool is_pub_exist(std::string bin_name);
 };
 
 } // namespace drider

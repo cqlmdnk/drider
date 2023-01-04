@@ -55,6 +55,10 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 			SPDLOG_INFO("register-handler - Adding to regs\nTopic name : {}", (*it)->name().c_str());
 			SPDLOG_INFO("register-handler -  Topic is found\n size of subs = {}", (*it)->subscribers.size());
 			// found
+			if ((*it)->is_pub_exist(std::string(msg->bin_name()))) {
+				SPDLOG_WARN("Publisher exists in this topic : {}", msg->bin_name());
+				return ret;
+			}
 			drider::DriderPublisherInt *pub = (*it)->add_new_pub_to_topic(std::string(msg->bin_name()));
 			std::thread topic_thread(topic_start_func, pub, &((*it)->subscribers));
 			topic_thread.join();
