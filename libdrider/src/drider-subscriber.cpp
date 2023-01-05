@@ -40,13 +40,13 @@ DriderSubscriber::DriderSubscriber(const std::string &topic_name, const std::str
 	// tv.tv_usec = 0;
 	// setsockopt(this->sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 
-	SPDLOG_INFO("drider-subscriber - socket is initialized : {}", sock_fd);
+	LOG_INFO("drider-subscriber - socket is initialized : {}", sock_fd);
 
 	if (bind(sock_fd, (struct sockaddr *)_sock_addr, sizeof(struct sockaddr_un)) < 0) {
-		SPDLOG_ERROR("socket bind failed");
+		LOG_ERROR("{}", "socket bind failed");
 	}
 
-	SPDLOG_INFO("drider-subscriber - object is successfully initiliazed");
+	LOG_INFO("{}", "drider-subscriber - object is successfully initiliazed");
 }
 
 DriderSubscriber::~DriderSubscriber()
@@ -88,7 +88,7 @@ void *DriderSubscriber::callback_loop()
 		n_read = recv(this->sock_fd, buffer, BUF_SIZE_1K, 0);
 		if (n_read == -1) {
 			if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
-				SPDLOG_INFO("drider-subscriber - errno == EAGAIN) || (errno == EWOULDBLOCK)");
+				LOG_INFO("{}", "drider-subscriber - errno == EAGAIN) || (errno == EWOULDBLOCK)");
 				// delete this;
 				return nullptr;
 			} else {
@@ -96,7 +96,7 @@ void *DriderSubscriber::callback_loop()
 			}
 		}
 		this->recv_callback(buffer);
-		SPDLOG_INFO("drider-subscriber - read {} bytes from socket", n_read);
+		LOG_INFO("drider-subscriber - read {} bytes from socket", n_read);
 	}
 	return nullptr;
 }

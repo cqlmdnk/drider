@@ -25,7 +25,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <drider-subscriber-internal.h>
 #include <drider-types.h>
 #include <register-handler.h>
-#include <spdlog/spdlog.h>
 
 #include <thread>
 namespace dbroker {
@@ -46,41 +45,41 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 		 *
 		 */
 		// printf("register-handler - Adding to regs\nTopic name : %s\n", msg->get_topic_name());
-		SPDLOG_INFO("register-handler -  REG request for = {}", msg->bin_name());
-		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
+		LOG_INFO("register-handler -  REG request for = {}", msg->bin_name());
+		it = std::find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
 
 		if (it != topic_vec.end()) {
-			SPDLOG_INFO("register-handler - Adding to regs\nTopic name : {}", (*it)->name().c_str());
-			SPDLOG_INFO("register-handler -  Topic is found\n size of subs = {}", (*it)->subscribers.size());
+			LOG_INFO("register-handler - Adding to regs\nTopic name : {}", (*it)->name().c_str());
+			LOG_INFO("register-handler -  Topic is found\n size of subs = {}", (*it)->subscribers.size());
 			// found
 			if ((*it)->is_pub_exist(std::string(msg->bin_name()))) {
-				SPDLOG_WARN("Publisher exists in this topic : {}", msg->bin_name());
+				LOG_WARN("Publisher exists in this topic : {}", msg->bin_name());
 				return ret;
 			}
 			drider::DriderPublisherInt *pub = (*it)->add_new_pub_to_topic(std::string(msg->bin_name()));
 			std::thread topic_thread(topic_start_func, pub, &((*it)->subscribers));
 			topic_thread.join();
-			SPDLOG_INFO("register-handler -  Publlisher count on this topic : {}", (*it)->publishers.size());
+			LOG_INFO("register-handler -  Publlisher count on this topic : {}", (*it)->publishers.size());
 		} else {
 			// not found
-			SPDLOG_INFO("register-handler -  Topic is not found");
+			LOG_INFO("{}", "register-handler -  Topic is not found");
 			topic = new drider::DriderTopic(std::string(msg->topic_name()));
 			topic_vec.push_back(topic);
 
 			drider::DriderPublisherInt *pub = topic->add_new_pub_to_topic(std::string(msg->bin_name()));
 			if (pub == nullptr) {
 				ret = -1;
-				SPDLOG_ERROR("Couldn't add new publisher to topic : {}", msg->bin_name());
+				LOG_ERROR("Couldn't add new publisher to topic : {}", msg->bin_name());
 				return ret;
 			}
 			std::thread topic_thread(topic_start_func, pub, &(topic->subscribers));
 			topic_thread.join();
 
-			SPDLOG_INFO("Publlisher count on this topic : {}", topic->publishers.size());
+			LOG_INFO("Publlisher count on this topic : {}", topic->publishers.size());
 		}
-		SPDLOG_INFO("register-handler -  Topic Count : {}", topic_vec.size());
+		LOG_INFO("register-handler -  Topic Count : {}", topic_vec.size());
 
 		break;
 
@@ -98,7 +97,7 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 
 		if (it != topic_vec.end()) {
 			// found
-			SPDLOG_INFO("pubs count in this topic = {}", (*it)->publishers.size());
+			LOG_INFO("pubs count in this topic = {}", (*it)->publishers.size());
 			(*it)->add_new_sub_to_topic(std::string(msg->bin_name()));
 		}
 		/* code */
@@ -111,13 +110,13 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 		 * If not remove pub from pub list
 		 *
 		 */
-		SPDLOG_INFO("register-handler -  UNREG request for = {}", msg->bin_name());
+		LOG_INFO("register-handler -  UNREG request for = {}", msg->bin_name());
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
 
 		if (it != topic_vec.end()) {
-			SPDLOG_INFO("register-handler -  Found topic for publisher removal. Looking for publisher in vector...");
+			LOG_INFO("{}", "register-handler -  Found topic for publisher removal. Looking for publisher in vector...");
 
 			std::vector<drider::DriderPublisherInt *>::iterator it_pub;
 
@@ -126,22 +125,22 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 			});
 
 			if (it_pub != (*it)->publishers.end()) {
-				SPDLOG_INFO("register-handler -  Found publisher, deleting...");
+				LOG_INFO("{}", "register-handler -  Found publisher, deleting...");
 				(*it)->publishers.erase(std::remove((*it)->publishers.begin(), (*it)->publishers.end(), (*it_pub)), (*it)->publishers.end());
 				(*it_pub)->delete_it();
 			}
-			SPDLOG_INFO("register-handler -  Publlisher count on this topic : {}", (*it)->publishers.size());
+			LOG_INFO("register-handler -  Publlisher count on this topic : {}", (*it)->publishers.size());
 		}
 
 		break;
 	case drider::PAC_TYPE::UNSUB:
-		SPDLOG_INFO("register-handler -  UNREG request for = {}", msg->bin_name());
+		LOG_INFO("register-handler -  UNREG request for = {}", msg->bin_name());
 		it = find_if(topic_vec.begin(), topic_vec.end(), [&topic_name](const drider::DriderTopic *obj) {
 			return obj->name() == topic_name;
 		});
 
 		if (it != topic_vec.end()) {
-			SPDLOG_INFO("register-handler -  Found topic for publisher removal. Looking for publisher in vector...");
+			LOG_INFO("{}", "register-handler -  Found topic for publisher removal. Looking for publisher in vector...");
 
 			std::vector<drider::DriderSubscriberInt *>::iterator it_sub;
 
@@ -150,11 +149,11 @@ int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<d
 			});
 
 			if (it_sub != (*it)->subscribers.end()) {
-				SPDLOG_INFO("register-handler -  Found publisher, deleting...");
+				LOG_INFO("{}", "register-handler -  Found publisher, deleting...");
 				(*it)->subscribers.erase(std::remove((*it)->subscribers.begin(), (*it)->subscribers.end(), (*it_sub)), (*it)->subscribers.end());
 				(*it_sub)->delete_it();
 			}
-			SPDLOG_INFO("register-handler -  Subscribers count on this topic : {}", (*it)->subscribers.size());
+			LOG_INFO("register-handler -  Subscribers count on this topic : {}", (*it)->subscribers.size());
 			/*
 			 * Search through sub in topic
 			 * Remove sub from list

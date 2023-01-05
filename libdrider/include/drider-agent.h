@@ -2,8 +2,8 @@
 #define DRIDER_AGENT_H
 #include <drider-helpers.h>
 #include <register-message.h>
-#include <spdlog/spdlog.h>
 #include <topics.h>
+#include <log-abs.h>
 
 #include <errno.h>
 #include <string>

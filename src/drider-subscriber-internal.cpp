@@ -23,7 +23,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <drider-subscriber-internal.h>
 #include <register-message.h>
-#include <spdlog/spdlog.h>
 #include <topics.h>
 
 #include <errno.h>
@@ -41,20 +40,20 @@ DriderSubscriberInt::DriderSubscriberInt()
 
 DriderSubscriberInt::DriderSubscriberInt(std::string topic_name, std::string bin_name)
 {
-	SPDLOG_INFO("drider-subscriber - init object , topic:{} - bin:{}", topic_name.c_str(), bin_name.c_str());
+	LOG_INFO("drider-subscriber - init object , topic:{} - bin:{}", topic_name.c_str(), bin_name.c_str());
 
 	this->bin_name() = bin_name;
 	this->sock_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (sock_fd < 0) {
-		SPDLOG_ERROR("socket initialization failed");
+		LOG_ERROR("{}", "socket initialization failed");
 	}
 	struct timeval tv;
 	tv.tv_sec = 2;
 	tv.tv_usec = 0;
 	setsockopt(this->sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 
-	SPDLOG_INFO("drider-subscriber - socket is initialized : {}", sock_fd);
-	SPDLOG_INFO("drider-subscriber - object is successfully initiliazed");
+	LOG_INFO("drider-subscriber - socket is initialized : {}", sock_fd);
+	LOG_INFO("{}", "drider-subscriber - object is successfully initiliazed");
 }
 
 DriderSubscriberInt::~DriderSubscriberInt()

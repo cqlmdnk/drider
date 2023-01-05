@@ -1,7 +1,7 @@
 #ifndef DRIDER_SUBSCRIBER_INTERNAL_H
 #define DRIDER_SUBSCRIBER_INTERNAL_H
 #include <message.h>
-
+#include <log-abs.h>
 #include <string>
 #include <sys/un.h>
 namespace drider {

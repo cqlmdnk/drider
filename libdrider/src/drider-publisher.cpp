@@ -44,12 +44,12 @@ DriderPublisher::~DriderPublisher()
 void DriderPublisher::dispatcher(char *msg_buffer, size_t msg_buffer_size)
 {
 	int n_sent = 0;
-	SPDLOG_INFO("Trying to send from dispatcher.");
+	LOG_INFO("{}", "Trying to send from dispatcher.");
 	if ((n_sent = sendto(sock_fd, msg_buffer, msg_buffer_size, 0,
 			     (sockaddr *)_sock_addr, sizeof(struct sockaddr_un))) < 0) {
-		SPDLOG_ERROR("sending datagram message");
+		LOG_ERROR("{}", "sending datagram message");
 	}
-	SPDLOG_INFO("Sent from dispatcher.");
+	LOG_INFO("{}", "Sent from dispatcher.");
 	/*
 	 *Send given buffer to brokers reserved socket path
 	 */

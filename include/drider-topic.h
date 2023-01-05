@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <vector>
+#include <log-abs.h>
+
 namespace drider {
 class DriderTopic {
       private:

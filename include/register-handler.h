@@ -3,6 +3,7 @@
 #include <drider-topic.h>
 #include <register-message.h>
 #include <vector>
+#include <log-abs.h>
 namespace dbroker {
 class RegisterHandler {
       private:

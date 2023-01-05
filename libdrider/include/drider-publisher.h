@@ -4,6 +4,7 @@
 #include <drider-types.h>
 #include <message.h>
 #include <sys/un.h>
+#include <log-abs.h>
 
 #include <vector>
 namespace drider {

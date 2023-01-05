@@ -2,8 +2,8 @@
 #define DRIDER_PUBLISHER_INTERNAL_H
 #include <drider-types.h>
 #include <message.h>
+#include <log-abs.h>
 #include <sys/un.h>
-
 #include <vector>
 namespace drider {
 class DriderPublisherInt {

@@ -2,6 +2,7 @@
 #define DRIDER_SUBSCRIBER_H
 #include <drider-agent.h>
 #include <message.h>
+#include <log-abs.h>
 
 #include <string>
 #include <sys/un.h>

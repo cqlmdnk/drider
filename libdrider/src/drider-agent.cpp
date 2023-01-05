@@ -28,23 +28,23 @@ DriderAgent::DriderAgent()
 }
 DriderAgent::DriderAgent(const std::string &topic_name, const std::string &bin_name)
 {
-	SPDLOG_INFO("drider-agent - init object , topic:{} - bin:{}", topic_name.c_str(), bin_name.c_str());
+	LOG_INFO("drider-agent - init object , topic:{} - bin:{}", topic_name.c_str(), bin_name.c_str());
 	this->bin_name() = bin_name;
 
 	sock_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (sock_fd < 0) {
-		SPDLOG_ERROR("socket initialization failed");
+		LOG_ERROR("{}", "socket initialization failed");
 	}
-	SPDLOG_INFO("drider-agent - socket is initialized : {}", sock_fd);
+	LOG_INFO("drider-agent - socket is initialized : {}", sock_fd);
 	_sock_addr = (sockaddr_un *)calloc(1, sizeof(sockaddr_un));
 	if (_sock_addr == NULL) {
-		SPDLOG_ERROR("socket address allocation failed");
+		LOG_ERROR("{}", "socket address allocation failed");
 	}
 	_sock_addr->sun_family = AF_UNIX;
 	std::string path = std::string(this->bin_name()) + topic_name;
 	snprintf(_sock_addr->sun_path, (strlen(path.c_str()) + 1), "%s", path.c_str());
 	_sock_addr->sun_path[0] = '\0';
-	SPDLOG_INFO("drider-agent - object is successfully initiliazed");
+	LOG_INFO("{}", "drider-agent - object is successfully initiliazed");
 }
 
 DriderAgent::~DriderAgent()
@@ -63,14 +63,14 @@ int DriderAgent::process_request(const std::string &topic_name, const int &type)
 
 	int broker_socket = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (broker_socket < 0) {
-		SPDLOG_ERROR("broker_socket initialization failed");
+		LOG_ERROR("{}", "broker_socket initialization failed");
 		ret = -1;
 		return ret;
 	}
 	RegisterMessage reg_msg = RegisterMessage(type, (char *)bin_name_.c_str(), (char *)topic_name.c_str());
 	char buffer[reg_msg.get_size_of_vars()];
 	reg_msg.bin_name(this->bin_name().c_str());
-	printf("%s\n", reg_msg.bin_name());
+	LOG_INFO("%s\n", reg_msg.bin_name());
 	reg_msg.serialize(buffer);
 	const char *path_ = BROKER_PATH;
 
@@ -78,7 +78,7 @@ int DriderAgent::process_request(const std::string &topic_name, const int &type)
 	serv_addr.sun_family = AF_UNIX;
 	snprintf(serv_addr.sun_path, (strlen(path_) + 1), "%s", path_);
 	serv_addr.sun_path[0] = '\0';
-	printf("%s\n", reg_msg.bin_name());
+	LOG_INFO("%s\n", reg_msg.bin_name());
 
 	memset(&cli_addr, 0, sizeof(struct sockaddr_un));
 	cli_addr.sun_family = AF_UNIX;
@@ -93,18 +93,18 @@ int DriderAgent::process_request(const std::string &topic_name, const int &type)
 	// printf("\n");
 
 	if (bind(broker_socket, (struct sockaddr *)&cli_addr, sizeof(struct sockaddr_un)) < 0) {
-		SPDLOG_ERROR("socket bind failed");
+		LOG_ERROR("{}", "socket bind failed");
 	}
 
 	int n_sent = 0;
 	if ((n_sent = sendto(broker_socket, buffer, reg_msg.get_size_of_vars(), 0,
 			     (sockaddr *)&serv_addr, sizeof(struct sockaddr_un))) < 0) {
-		SPDLOG_ERROR("sending datagram message");
+		LOG_ERROR("{}", "sending datagram message");
 		ret = -1;
 	}
 	int n_recv = 0;
 	if ((n_recv = read(broker_socket, buffer, reg_msg.get_size_of_vars())) < 0) {
-		SPDLOG_ERROR("receiving datagram message");
+		LOG_ERROR("{}", "receiving datagram message");
 		ret = -1;
 	}
 	reg_msg.deserialize(buffer);
