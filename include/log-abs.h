@@ -12,7 +12,7 @@
 #include <string>
 #include <regex>
 static const char *convert_printf_format(const char* fmt) {
-    
+
     std::string s(fmt);
     s = std::regex_replace(s, std::regex("{}"), "%s"); // replace 'def' -> 'klm'
     return s.c_str();
