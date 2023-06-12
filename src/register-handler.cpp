@@ -25,7 +25,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <drider-subscriber-internal.h>
 #include <drider-types.h>
 #include <register-handler.h>
-
+#include <algorithm>
 #include <thread>
 namespace dbroker {
 int RegisterHandler::execute_request(drider::RegisterMessage *msg, std::vector<drider::DriderTopic *> &topic_vec, void *(*topic_start_func)(drider::DriderPublisherInt *, std::vector<drider::DriderSubscriberInt *> *))

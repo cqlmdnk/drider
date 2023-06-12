@@ -22,6 +22,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include <drider-topic.h>
+#include <algorithm>
+
 namespace drider {
 DriderTopic::DriderTopic(std::string name)
 {

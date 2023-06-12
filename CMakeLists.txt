@@ -8,17 +8,10 @@ else()
 message(WARNING "Using spdlog functions")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20 -Wall -O3 -Wextra -Wno-unused-parameter -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -O3 -Wextra -Wno-unused-parameter -g")
 
 ## message-generator
-add_executable(mg ./message-definitions/message-generator.cpp)
-add_custom_command(
-  TARGET mg
-  POST_BUILD
-  COMMAND mg
-  ARGS ${CMAKE_CURRENT_SOURCE_DIR}/message-definitions ${CMAKE_CURRENT_SOURCE_DIR}/libdrider/include
-  )
-add_custom_target(message-headers DEPENDS mg ${CMAKE_CURRENT_SOURCE_DIR}/libdrider/include/register-message.h)
+add_custom_target(message-headers DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/libdrider/include/register-message.h)
 ## libdrider
 include_directories(./libdrider/include)
 include_directories(./include)
